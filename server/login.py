@@ -28,7 +28,10 @@ class Login:
             if self.__is_authenticateUser():
                 print("Login successful!")
                 user_type = self.__authenticator.get_user_role(self.login_id)
-                return user_type
+                user = {"user_id": self.login_id,
+                        "name": self.login_name,
+                        "role": user_type}
+                return user
             else:
                 print("Invalid password.")
         else:

@@ -5,28 +5,32 @@ from users.employee import Employee
 import string
 
 class UserHandler():
-    def __init__(self, role):
-        self.user_type = role
+    def __init__(self, user):
+        self.user = user
         self.assignTaskToUser()
         
     def assignTaskToUser(self):
-        if self.user_type.upper() == "ADMIN":
-            user = Admin()
-        elif self.user_type.upper() == "CHEF":
-            user = Chef()
-            pass
-        elif self.user_type.upper() == "EMPLOYEE":
-            user = Employee()
+        user_type = self.user["role"]
+        if user_type.upper() == "ADMIN":
+            self.processAdminTasks()
+        elif user_type.upper() == "CHEF":
+            self.processChefTasks
+        elif user_type.upper() == "EMPLOYEE":
+            self.processEmployeesTasks()
         else:
             print("Access denied")
-            
-        return user
         
-    def showAdminTasks(self):
-        pass
+    def processAdminTasks(self):
+        admin = Admin(self.user)
+        task = admin.displayTasks()
+        admin.handleTasks(task)
     
-    def displayChefTasks(self):
-        pass
+    def processChefTasks(self):
+        chef = Chef(self.user)
+        task = chef.displayTasks()
+        chef.handleTasks(task)
     
-    def displayEmployeesTasks(self):
-        pass
+    def processEmployeesTasks(self):
+        employee = Employee(self.user)
+        task = employee.displayTasks()
+        employee.handleTasks(task)

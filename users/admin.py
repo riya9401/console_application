@@ -2,15 +2,14 @@ from utils.db import Database
 from server.request_handler import RequestHandler
 
 class Admin():
-    def __init__(self):
-        task=self.displayTasks()
+    def __init__(self,user):
         self.item_db = Database()
         self.requestManger = RequestHandler()
-        self.handleTasks(task)
+        self.admin = user
         
         
     def displayTasks(self):
-        print("Hello Admin... ")  
+        print(f"Hello {self.admin['name']}... ")  
         print("1. Add New Item to Cafeteria")  
         print("2. Update Item Info.") 
         print("3. Remove Item from Cafeteria")
@@ -22,9 +21,9 @@ class Admin():
         if task == '1':
             request = self.add_item()
         elif task == '2':
-            self.update_item()
+            request = self.update_item()
         elif task == '3':
-            self.remove_item()
+            request = self.remove_item()
         elif task == '4':
             print("Exiting from task list")
             return
