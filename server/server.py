@@ -33,7 +33,7 @@ class Server():
                 client_thread.daemon = True
                 client_thread.start()
         finally:
-            server_socket.close()
+            server_socket.close()  
 
 if __name__ == "__main__":
     server = Server()

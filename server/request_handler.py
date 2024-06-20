@@ -97,11 +97,12 @@ class RequestHandler():
             return True
 
     def handle_employee_request(self):
-        if self.action == 'select_order':
-            self.viewRolledOutMenu()
-            menu_options = self.recmd.recommend_to_employee()
-            if len(menu_options) <1:
-                message = "menu not found"
+        if self.action == 'vote_item':
+            if self.viewRolledOutMenu():
+                vote_item = self.voteItemFromRolledOutMenu()
+                
+            # if len(menu_options) <1:
+            #     message = "menu not found"
         elif self.action == "view_menu":
             pass
         elif self.action == "provide_feedback":
@@ -110,8 +111,15 @@ class RequestHandler():
             pass
         
         def viewRolledOutMenu(self):
-            rcmd_menu = self.recmd.recommend_to_employee()
-            columns = []
+            query = "select dm.item_id,item.name,item.price from daily_menu dm LEFT join food_item item on dm.item_id = item.item_id where dm.menu_category = '{}' ".format(self.request_data['menu_type'])
+            rolledOutMenu = self.db.execute_query(query)
+            columns = ["item_id","item_name","price"]
+            df = pd.DataFrame(rolledOutMenu,columns)
+            print(df)
+            return True
+        
+        def voteItemFromRolledOutMenu(self):
+            pass
 
     def handle_recommendation_request(self):
         query = "select"

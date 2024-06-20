@@ -10,7 +10,7 @@ class Employee():
         self.sia = SentimentIntensityAnalyzer()
         self.employee = user
         self.db = Database()
-        self.tasks= {1: "Select Order",
+        self.tasks= {1: "Vote Item For Tomorrow",
                      2: "View Menu",
                      3: "Provide Feedback",
                      4: "Exit"}
@@ -44,7 +44,7 @@ class Employee():
             
         request_data = {
             'client_type': 'employee',
-            'action': 'select_order',
+            'action': 'vote_item',
             'category': menuType[int(input("Please select order type: "))]
         }
         return request_data

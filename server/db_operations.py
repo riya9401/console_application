@@ -20,15 +20,6 @@ class Database:
         self.conn.commit()
         return result
     
-    def fetch_data(self,table='',column=None,condition=None):
-        if condition:
-            query = "select `{}` from `{}` where ".format(column,table)+condition
-            data = self.execute_query(query)
-        else:
-            query = "select `{}` from %s".format(column)
-            data = self.execute_query(query,params=table)
-        return data
-    
     def is_cursor_connected(self):
         try:
             self.cursor.execute("SELECT 1")

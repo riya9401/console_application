@@ -11,7 +11,7 @@ def main():
     
     if choice == '1':
         log_in = Login()
-        requester = log_in.processRequest()
+        requester = log_in.processLogin()
         response = client.send_request(f"{requester} loged in succesfully")
         user = UserHandler(requester)
     elif choice == '2':
