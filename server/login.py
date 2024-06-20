@@ -1,5 +1,6 @@
 from server.Authenticator import Authenticator
-from utils.db import Database
+from server.db_operations import Database
+from server.request_handler import RequestHandler
 
 class Login:
     def __init__(self):
@@ -13,8 +14,7 @@ class Login:
         self.login_name = input("Enter your name: ")
         
     def __validateUser(self): 
-        query = "SELECT * FROM users WHERE user_id = %s AND user_name = %s"
-        result = self.db.fetch_data(query, (self.login_id, self.login_name.upper()))
+        result = self.db.fetch_data(table = "users",column = ("user_id","user_name"),condition = ("WHERE user_id = {} AND user_name = '{}'".format(self.login_id, self.login_name.upper())))
         if result:
             return True
         return False

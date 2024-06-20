@@ -1,4 +1,4 @@
-from utils.db import Database
+from server.db_operations import Database
 
 class Authenticator():
     def __init__(self):
@@ -6,8 +6,7 @@ class Authenticator():
     
     def authentication(self, id):
         password = input("Enter your password: ")
-        query = "SELECT * FROM user_credentials WHERE id = %s AND password = %s"
-        result = self.db.fetch_data(query, (id, password))
+        result = self.db.fetch_data(table = "user_credentials",column=("id","password"),condition = ("WHERE id = {} AND password = '{}'".format(id, password)))
         if password==result[0][1]:
             return True
         return False

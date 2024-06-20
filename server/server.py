@@ -4,7 +4,7 @@ import threading
 class Server():
     def __init__(self):
         self.HOST = 'localhost'
-        self.PORT = 65432
+        self.PORT = 2337
 
     def client_handler(self,client_socket):
         try:
@@ -14,6 +14,8 @@ class Server():
                     break
                 response = f"{request} recieved from client"
                 client_socket.send(response.encode('utf-8'))
+        except Exception as e:
+            print(f"Error handling client: {e}")
         finally:
             client_socket.close()
 
@@ -28,6 +30,7 @@ class Server():
                 client_socket, addr = server_socket.accept()
                 print(f"Connection from {addr}")
                 client_thread = threading.Thread(target=self.client_handler, args=(client_socket,))
+                client_thread.daemon = True
                 client_thread.start()
         finally:
             server_socket.close()

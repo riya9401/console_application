@@ -5,7 +5,6 @@ from server.user_handler import UserHandler
 
 def main():
     client = UserClient()
-    
     print("1. Login")
     print("2. Exit")
     choice = input("Enter your choice: ")
@@ -18,6 +17,6 @@ def main():
     elif choice == '2':
         print("Exit successfully.")
     client.close()
-
+    
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-from utils.db import Database
+from server.db_operations import Database
 from server.request_handler import RequestHandler
 
 class Admin():
@@ -6,14 +6,16 @@ class Admin():
         self.item_db = Database()
         self.requestManger = RequestHandler()
         self.admin = user
+        self.tasks = {1: "Add New Item to Cafeteria ",
+                      2 : "Update Item Info",
+                      3 : "Remove Item from Cafeteria",
+                      4 : "back"}
         
         
     def displayTasks(self):
-        print(f"Hello {self.admin['name']}... ")  
-        print("1. Add New Item to Cafeteria")  
-        print("2. Update Item Info.") 
-        print("3. Remove Item from Cafeteria")
-        print("4. back.")
+        print(f"\nHello {self.admin['name']}... \n")
+        for task in self.tasks:  
+            print(f"{task}. {self.tasks[task]}") 
         choice  = input("Please Enter your choice here: ")
         return choice
     
@@ -34,7 +36,7 @@ class Admin():
         request_data = {
             'client_type': 'admin',
             'action': 'add_item',
-            'item_name': input("Enter name of item:"),
+            'item_name': input("Enter name of item: "),
             'item_price': input("Enter price: "),
             'availability': input("Enter Item availability: "),
             'category': input("Enter Item category: "),
@@ -42,20 +44,26 @@ class Admin():
         return request_data
         
     def update_item(self):
-        itemId = input("Enter item id need to be update: ")
-        field = input("chosse the option needed to be update:\n1. Item Name\n2. Price\n3. Availability\n4.Category")
+        itemId = int(input("\nEnter item id need to be update: "))
+        item_struct = {1 : "Item Name",
+                       2 : "Price",
+                       3 : "Availability",
+                       4 : "Category"}
+        for property in item_struct:
+            print(f"{property}. {item_struct[property]}")
+        field = int(input("chosse the option needed to be update: "))
         if field in range(1,5):
             request_data = {
                 'client_type': 'admin',
                 'action': 'update_item',
                 'item_id': itemId,
-                'updating_field': field,
-                'updating_value': input(f"Enter updated value for {field}: "),
+                'updating_field': item_struct[field],
+                'updating_value': input(f"Enter updated value for {item_struct[field]}: "),
             }
             return request_data
 
     def remove_item(self):
-        itemId = input("Enter item id need to be remove: ")
+        itemId = int(input("Enter item id need to be remove: "))
         request_data = {
             'client_type': 'admin',
             'action': 'remove_item',

@@ -1,4 +1,3 @@
-# from collections.abc import Iterable
 from users.admin import Admin
 from users.chef import Chef
 from users.employee import Employee
@@ -14,7 +13,9 @@ class UserHandler():
         if user_type.upper() == "ADMIN":
             self.processAdminTasks()
         elif user_type.upper() == "CHEF":
-            self.processChefTasks
+            chef_isAccessible = True
+            while chef_isAccessible:
+               chef_isAccessible = self.processChefTasks()
         elif user_type.upper() == "EMPLOYEE":
             self.processEmployeesTasks()
         else:
@@ -28,7 +29,8 @@ class UserHandler():
     def processChefTasks(self):
         chef = Chef(self.user)
         task = chef.displayTasks()
-        chef.handleTasks(task)
+        result = chef.handleTasks(task)
+        return result
     
     def processEmployeesTasks(self):
         employee = Employee(self.user)

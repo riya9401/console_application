@@ -1,9 +1,9 @@
-import mysql.connector
 from config.settings import *
+from mysql.connector import errorcode,Error,connect
 
 class Database:
     def __init__(self):
-        self.conn = mysql.connector.connect(
+        self.conn = connect(
             host=DB_HOST,
             user=DB_USER,
             password=DB_PASSWORD,
@@ -19,7 +19,29 @@ class Database:
             result = None
         self.conn.commit()
         return result
+    
+    def fetch_data(self,table='',column=None,condition=None):
+        if condition:
+            query = "select `{}` from `{}` where ".format(column,table)+condition
+            data = self.execute_query(query)
+        else:
+            query = "select `{}` from %s".format(column)
+            data = self.execute_query(query,params=table)
+        return data
+    
+    def is_cursor_connected(self):
+        try:
+            self.cursor.execute("SELECT 1")
+            return True
+        except Error as e:
+            print(f"Cursor is not connected: {e}")
+            return False
 
     def close(self):
         self.cursor.close()
         self.conn.close()
+        
+    def open(self):
+        self.conn._open_connection()
+        self.cursor=self.conn.cursor()
+
