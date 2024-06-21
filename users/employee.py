@@ -3,6 +3,7 @@ from users.recommendation_engine import Recommendation
 from server.request_handler import RequestHandler
 from server.db_operations import Database
 from nltk.sentiment import SentimentIntensityAnalyzer
+import pandas as pd
 
 class Employee():
     def __init__(self,user):
@@ -44,7 +45,8 @@ class Employee():
         request_data = {
             'client_type': 'employee',
             'action': 'vote_item',
-            'category': menuType[int(input("Please select order type: "))]
+            'category': menuType[int(input("Please select order type: "))],
+            'emp_id': self.employee["user_id"]
         }
         return request_data
     
@@ -62,30 +64,32 @@ class Employee():
         return self.requestManger.manage_request(request_data)
     
     def provideFeedback(self):
-        order_id = self.getOrderId()
+        item_id = self.getItemNeedToProvideFeedback()
         rating = int(input("Please give ratting to order(between 1 to 5): "))
         comment =  input("please provide your feedback comment: ")
         sentiment_score = self.sia.polarity_scores(comment)['compound']
         request_data = {
             'client_type': 'employee',
             'action': 'provide_feedback',
-            'order_id': order_id,
+            'emp_id': self.employee["user_id"],
+            'item_id': item_id,
             'rating': rating,
             'comment': comment,
             'sentiment_score': sentiment_score
         }
         return request_data
     
-    def getOrderId(self):
+    def getItemNeedToProvideFeedback(self):
         request_data = {
             'client_type': 'employee',
-            'action': 'my_orders',
-            'emp_id': self.employee.id,
-            'table': 'daily_orders'
+            'action': 'my_vote',
+            'emp_id': self.employee["user_id"]
         }
-        return self.requestManger.manage_request(request_data)
-        
-        
+        myVote = self.requestManger.manage_request(request_data)
+        print(pd.DataFrame(data = myVote,columns=["Item_id","Name"]).to_string(index=False))
+        feedbackItem = int(input("Enter Item Id you want to provide feedback: "))
+        return feedbackItem
+                
     def _get_sentiment(self,item_id):
         total_sentiment = 0
         comment_count = 0

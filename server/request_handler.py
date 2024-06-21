@@ -84,16 +84,16 @@ class RequestHandler():
             query = "select item_id,name,price,category from food_item where availability RLIKE '{}' or availability = 'all'".format(self.request_data['menu_type'].lower())
             menu = self.db.execute_query(query)
             columns = ['item_id', 'name', 'price', 'category']
-            df = pd.DataFrame(menu, columns=columns)
-            print(f"\nMenu:\n{df}")
+            df = pd.DataFrame(data=menu, columns=columns)
+            print(f"\nMenu:\n{df.to_string(index=False)}")
             self.getSelectedItems()
             return True
             
         elif self.action == 'view_recommendation':
             menu = self.request_data['menu_items']
             columns = ['item_id', 'name', 'rating', 'category']
-            df = pd.DataFrame(menu, columns=columns)
-            print(f"\n{self.request_data['menu_type']} menu in Recommended item order:\n{df}")
+            df = pd.DataFrame(data=menu, columns=columns)
+            print(f"\n{self.request_data['menu_type']} menu in Recommended item order:\n{df.to_string(index=False)}")
             return True
             
         elif self.action == 'menu_rollOut':
@@ -109,37 +109,51 @@ class RequestHandler():
             result = self.db.execute_query(query)
             print(f"monthly report is generated for {self.request_data['month']}.")
             columns = ['year-month', 'item_id', 'item_name' ,'average_rating']
-            df = pd.DataFrame(result, columns=columns)
-            print(df)
+            df = pd.DataFrame(data=result, columns=columns)
+            print(df.to_string(index=False))
             return True
 
     def handle_employee_request(self):
-        if self.action == 'vote_item':
+        if self.action == 'my_vote':
+            query = "select vote.item_id,item.name from vote_item vote LEFT join food_item item on vote.menu_id = item.item_id where vote.emp_id = %s"
+            response = self.db.execute_query(query,params=(self.request_data["emp_id"],))
+            return response
+            
+        elif self.action == 'vote_item':
             if self.viewRolledOutMenu():
                 vote_item = self.voteItemFromRolledOutMenu()
-                
-            # if len(menu_options) <1:
-            #     message = "menu not found"
+                return vote_item
+            
         elif self.action == "view_menu":
-            pass
+            query = "select item.name, item.price, average_rating As rcmd.rating, item.availability, rcmd.sentiment from food_item item Join recommendation rcmd on item.item_id = rcmd.item_id "
+            menu = self.db.execute_query(query,params=())
+            menu_table = pd.DataFrame(data=menu,columns=["Item_Name","Price","Rating","Availability","Sentiment"])
+            print(f"================================\n{menu_table.to_string(index=False)}\n================================")
+            
         elif self.action == "provide_feedback":
-            pass
+            query = "insert into feedback (emp_id,item_id,rating,comment,sentiment,fb_date) values (%s,%s,%s,%s,%s,%s)"
+            feedback = self.db.execute_query(query,params=(self.request_data["emp_id"],self.request_data["item_id"],self.request_data["ratings"],self.request_data["comment"],self.request_data["sentiment"],datetime.datetime.now().strftime("%Y-%m-%d")))
+            return feedback
+            
         elif self.action == "my_orders":
             pass
         
-        def viewRolledOutMenu(self):
-            query = "select dm.item_id,item.name,item.price from daily_menu dm LEFT join food_item item on dm.item_id = item.item_id where dm.menu_category = '{}' ".format(self.request_data['menu_type'])
-            rolledOutMenu = self.db.execute_query(query)
-            columns = ["item_id","item_name","price"]
-            df = pd.DataFrame(rolledOutMenu,columns)
-            print(df)
-            return True
+    def viewRolledOutMenu(self):
+        query = "select dm.menu_id,item.name,item.price from daily_menu dm LEFT join food_item item on dm.item_id = item.item_id where dm.menu_category = '{}' ".format(self.request_data['category'].lower())
+        rolledOutMenu = self.db.execute_query(query)
+        columns = ["menu_id","item_name","price"]
+        df = pd.DataFrame(data=rolledOutMenu,columns=columns)
+        print(df.to_string(index=False))
+        return True
         
-        def voteItemFromRolledOutMenu(self):
-            pass
-
+    def voteItemFromRolledOutMenu(self):
+        menu_id = int(input("Enter Menu Item of Food you would like to vote: "))
+        query = "insert into vote_item (menu_id,emp_id,vote_date) values (%s,%s,%s)"
+        voting = self.db.execute_query(query,params= (menu_id,self.request_data['emp_id'],datetime.datetime.now().strftime("%Y-%m-%d")))
+        print("Voting done successfully")
+        
     def handle_recommendation_request(self):
-        query = "select"
+        pass
         
     
     
