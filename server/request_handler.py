@@ -3,7 +3,7 @@ from server.db_operations import Database
 from users.client import UserClient
 from users.recommendation_engine import Recommendation
 import pandas as pd
-from datetime import datetime
+import datetime
 
 class RequestHandler():
     def __init__(self):
@@ -20,7 +20,9 @@ class RequestHandler():
             client_type = self.request_data['client_type']
             self.action = self.request_data['action']
             
-            if client_type == 'admin':
+            if client_type == 'login_logout':
+                return self.handle_login_logout_request()
+            elif client_type == 'admin':
                 return self.handle_admin_request()
             elif client_type == 'chef':
                 return self.handle_chef_request()
@@ -31,8 +33,23 @@ class RequestHandler():
             else:
                 return json.dumps({'status': 'error', 'message': 'Unknown client type'})
         finally:
-            self.db.close()
+            pass
+        #     self.db.close()
 
+    def handle_login_logout_request(self):
+        if self.action == 'login':
+            query = "insert into user_login (user_id, login_time) values (%s,'{}')".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            logins = self.db.execute_query(query,params=(self.request_data["user_id"],))
+            messages = "log-in successfully"
+            response = self.client.send_request(messages)
+            # response = client.send_request(f"{requester} loged in succesfully")
+            
+        elif self.action == "logout":
+            query = "update user_login set logout_time ='{}' where user_id = %s".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            logins = self.db.execute_query(query,params=(self.request_data["user_id"],))
+            messages = "logout successfully"
+            self.client.send_request(messages)
+    
     def handle_admin_request(self):
         if self.action == 'add_item':
             query = "INSERT INTO food_item (name,price,availability,category) values (%s,%s,%s,%s)"
@@ -48,13 +65,13 @@ class RequestHandler():
                 column = "availability"
             elif self.request_data['updating_field'] == "Category":
                 column  = "category"
-                itemName = self.db.fetchData(table='food_item',column='name',condition = "item_id = {}".format(self.request_data['item_id']))
+                itemName = self.db.execute_query(query='select name from food_item where item_id = {}'.format(self.request_data['item_id']))
             query = 'UPDATE food_item SET `{}` = %s WHERE item_id = %s'.format(column)
             item = self.db.execute_query(query,params=(self.request_data['updating_value'],self.request_data['item_id']))
             message = f"{itemName[0][0]}'s {column} is updated to {self.request_data['updating_value']}."
             
         elif self.action == "remove_item":
-            itemName = self.db.fetchData(table='food_item',column='name',condition = "item_id = {}".format(self.request_data['item_id']))
+            itemName = self.db.execute_query(query='select name from food_item where item_id = {}'.format(self.request_data['item_id']))
             query = "DELETE FROM food_item where item_id = %s"
             item = self.db.execute_query(query,params=(self.request_data['item_id'],))
             message = f"{itemName[0][0]} is removed from cafeteria."

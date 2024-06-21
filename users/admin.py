@@ -9,7 +9,7 @@ class Admin():
         self.tasks = {1: "Add New Item to Cafeteria ",
                       2 : "Update Item Info",
                       3 : "Remove Item from Cafeteria",
-                      4 : "back"}
+                      4 : "Log Out"}
         
         
     def displayTasks(self):
@@ -27,9 +27,8 @@ class Admin():
         elif task == '3':
             request = self.remove_item()
         elif task == '4':
-            print("Exiting from task list")
-            return
-        self.requestManger.manage_request(request)
+            request = self.logout()
+        return self.requestManger.manage_request(request)
         
         
     def add_item(self):
@@ -70,3 +69,11 @@ class Admin():
             'item_id': itemId,
         }
         return request_data
+    
+    def logout(self):
+        request = {
+            'client_type': 'login_logout',
+            'action': 'logout',
+            'user_id': self.admin["user_id"]
+        }
+        return request

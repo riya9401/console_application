@@ -13,7 +13,7 @@ class Employee():
         self.tasks= {1: "Vote Item For Tomorrow",
                      2: "View Menu",
                      3: "Provide Feedback",
-                     4: "Exit"}
+                     4: "Log Out"}
         
     def displayTasks(self):
         print(f"\nHello {self.employee['name']}... ")
@@ -30,9 +30,8 @@ class Employee():
         elif task == '3':
             request = self.provideFeedback()
         elif task == '4':
-            print("Exiting from task list")
-            return
-        self.requestManger.manage_request(request)
+            request = self.logout()
+        return self.requestManger.manage_request(request)
         
     def selectOrder(self):
         menuType = {1 : "Breakfast",
@@ -107,4 +106,12 @@ class Employee():
         query = "select item_id,rating from feedbacks where emp_id = %s"
         emp_pastOrders = self.db.execute_query(query,params=employee_id)
         return emp_pastOrders
+    
+    def logout(self):
+        request = {
+            'client_type': 'login_logout',
+            'action': 'logout',
+            'user_id': self.employee["user_id"],
+        }
+        return request
     

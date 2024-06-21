@@ -9,11 +9,13 @@ class UserClient():
         self.client_socket.connect((self.host, self.port))
 
     def send_request(self, request):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((self.host, self.port))
-            s.sendall(json.dumps(request).encode('utf-8'))
-            response = s.recv(1024)
-            return json.loads(response.decode('utf-8'))
+        try:
+            self.client_socket.send(request.encode('utf-8'))
+            response = self.client_socket.recv(1024).decode('utf-8')
+            print(f"Server response: {response}")
+            
+        except Exception as e:
+            print(f"Error sending notification: {e}")
         
     def close(self):
         self.client_socket.close()

@@ -11,7 +11,7 @@ class Chef():
         self.tasks = {1: "View Menu Recommendation",
                       2 : "Roll Out Menu",
                       3 : "View Monthly Feedback Reports",
-                      4 : "back"}
+                      4 : "Log Out"}
         
         self.menus = {1 : "Breakfast",
                       2 : "Lunch",
@@ -32,8 +32,7 @@ class Chef():
         elif task == '3':
             request = self.getMonthlyFbReport()
         elif task == '4':
-            print("Exiting from task list")
-            return False
+            request = self.logout()
         if request:
             return self.requestManger.manage_request(request)
         return False
@@ -93,4 +92,12 @@ class Chef():
             "month": month,
         }
         return report
+    
+    def logout(self):
+        request = {
+            'client_type': 'login_logout',
+            'action': 'logout',
+            'user_id': self.chef["user_id"]
+        }
+        return request
     
