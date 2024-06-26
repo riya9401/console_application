@@ -1,6 +1,6 @@
 import json
 from server.db_operations import Database
-from users.client import UserClient
+from client import UserClient
 from users.recommendation_engine import Recommendation
 import pandas as pd
 import datetime

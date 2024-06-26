@@ -1,5 +1,6 @@
 import socket
 import json
+# from server.login import Login
 
 class UserClient():
     def __init__(self):
@@ -20,3 +21,7 @@ class UserClient():
     def close(self):
         self.client_socket.close()
     
+client = UserClient()
+# log_in = Login()
+
+

@@ -1,4 +1,4 @@
-from config.settings import *
+from config.config import *
 from mysql.connector import errorcode,Error,connect
 
 class Database:
