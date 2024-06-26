@@ -1,27 +1,24 @@
 import socket
 from auth_client import AuthClient
 from admin_client import AdminClient
-from chef_client import ChefClient
-from employee_client import EmployeeClient
+from config.config import Settings
 
-class Client:
-    def __init__(self):
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect(('localhost', 23327))
-        self.auth_client = AuthClient(self.client_socket)
-        self.admin_client = AdminClient(self.client_socket)
-        self.chef_client = ChefClient(self.client_socket)
-        self.employee_client = EmployeeClient(self.client_socket)
+def main():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    settings = Settings()
+    client_socket.connect((settings.HOST, settings.PORT))
 
-    def run(self):
-        role = self.auth_client.login()
+    auth_client = AuthClient(client_socket)
+
+    role = auth_client.login()
+    if role:
         if role == 'admin':
-            self.admin_client.handle_admin_actions()
-        elif role == 'chef':
-            self.chef_client.handle_chef_actions()
-        elif role == 'employee':
-            self.employee_client.handle_employee_actions()
+            admin_client = AdminClient(client_socket)
+            admin_client.handle_admin_actions()
+        # Add handling for other roles like 'chef', 'employee'
+
+    auth_client.logout()
+    client_socket.close()
 
 if __name__ == "__main__":
-    client = Client()
-    client.run()
+    main()

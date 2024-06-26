@@ -8,4 +8,7 @@ class AuthController:
         action = request['action']
         if action == 'login':
             return self.auth_service.login(request['data'])
-        # Add other actions
+        elif action == 'logout':
+            return self.auth_service.logout(request['data'])
+        else:
+            return {'status': 'error', 'message': 'Invalid action'}

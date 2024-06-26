@@ -14,30 +14,35 @@ class AuthClient:
                 "username": username,
             }
         }
-        self.client_socket.sendall(json.dumps(login_request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = response.decode()
-        if response_data:
-            print("waiting for authentication...")
-            return self.authentication()
-        else:
-            print("Invalid userI or Username!")
+        # self.client_socket.sendall(json.dumps(login_request).encode())
+        # response = self.client_socket.recv(1024)
+        # response_data = response.decode()
+        # if response_data:
+        #     print("waiting for authentication...")
+        #     return self.authentication()
+        # else:
+        #     print("Invalid userI or Username!")
+        #     return None
+        try:
+            self.client_socket.sendall(json.dumps(login_request).encode())
+            response = self.client_socket.recv(1024)
+            response_data = json.loads(response.decode())
+            if response_data['status'] == 'success':
+                print("Login successful!")
+                return response_data['role']
+            else:
+                print("Login failed!")
+                return None
+        except Exception as e:
+            print(f"Error during login: {e}")
             return None
         
-    def authentication(self):
-        password = input("Enter password: ")
-        auth_request = {
-            "action": "auth",
-            "data": {
-                "password": password
-            }
+    def logout(self):
+        logout_request = {
+            "action": "logout",
+            "data": {}
         }
-        self.client_socket.sendall(json.dumps(auth_request).encode())
+        self.client_socket.sendall(json.dumps(logout_request).encode())
         response = self.client_socket.recv(1024)
-        response_data = response.decode()
-        if response_data:
-            print("Login successful!")
-            return response_data['role']
-        else:
-            print("Incorrect Password!\nLogin failed!")
-            return None
+        response_data = json.loads(response.decode())
+        print(response_data['message'])

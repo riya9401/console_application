@@ -4,12 +4,20 @@ class AuthRepository:
     def __init__(self):
         self.db = Database()
 
-    def get_user(self, username, password):
-        # Database logic for getting user
-        pass
+    def authenticate(self, user_data):
+        user_id = user_data['user_id']
+        username = user_data['username']
+        
+        query = "SELECT * FROM user WHERE user_id=%s AND user_name=%s"
+        result = self.db.execute_query(query, (user_id, username))
+        
+        if not result:
+            return {'status': 'error', 'message': 'User not found'}
 
-    def __validateUser(self): 
-        result = self.db.execute_query(query = "select user_id, user_name from user WHERE user_id = %s AND user_name = %s",params=(self.login_id, self.login_name.upper()))
-        if result:
-            return True
-        return False
+        query = "SELECT * FROM user_credential WHERE id=%s AND password=%s"
+        result = self.db.execute_query(query, (user_id, input("Enter password: ")))
+        
+        if not result:
+            return {'status': 'error', 'message': 'Incorrect password'}
+
+        return {'status': 'success', 'message': 'Login successful', 'role': 'admin'}
