@@ -6,8 +6,10 @@ class AuthController:
 
     def handle_request(self, request):
         action = request['action']
-        if action == 'login':
-            return self.auth_service.login(request['data'])
+        if action == 'validate_user':
+            return self.auth_service.login_validate(request['data'])
+        elif action == 'auth_user':
+            return self.auth_service.login_authenticate(request['data'])
         elif action == 'logout':
             return self.auth_service.logout(request['data'])
         else:

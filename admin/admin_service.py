@@ -5,11 +5,11 @@ class AdminService:
         self.admin_repository = AdminRepository()
 
     def add_food_item(self, food_item_data):
-        # Business logic for creating a food item
+        # check if food item already exists
         return self.admin_repository.add(food_item_data)
 
     def update_food_item(self, food_item_data):
-        # Business logic for updating a food item
+        #check if food item already exists
         return self.admin_repository.update(food_item_data)
     
     def remove_food_item(self, food_item_data):
