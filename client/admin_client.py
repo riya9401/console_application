@@ -1,4 +1,5 @@
 import json
+from pandas import DataFrame as pd_df
 
 class AdminClient:
     def __init__(self, client_socket):
@@ -6,7 +7,8 @@ class AdminClient:
         self.actions = {1: "Add New Item to Cafeteria ",
                       2 : "Update Item Info",
                       3 : "Remove Item from Cafeteria",
-                      4 : "Log Out"}
+                      4 : "View Menu",
+                      5 : "Log Out"}
 
     def handle_admin_actions(self):
         while True:
@@ -21,7 +23,9 @@ class AdminClient:
             elif choice == '3':
                 self.remove_food_item()
             elif choice == '4':
-                return "logout"
+                self.view_menu()
+            elif choice == '5':
+                return 'logOut'
 
     def add_food_item(self):
         name = input("Enter food item name: ")
@@ -42,7 +46,6 @@ class AdminClient:
         response_data = json.loads(response.decode())
         print(response_data['message'])
         
-
     def update_food_item(self):
         item_id = input("Enter food item ID: ")
         item = {1 : "Item Name",
@@ -81,4 +84,16 @@ class AdminClient:
         response = self.client_socket.recv(1024)
         response_data = json.loads(response.decode())
         print(response_data['message'])
+        
+    def view_menu(self):
+        display_request = {
+            'action': 'view_menu',
+        }
+        self.client_socket.sendall(json.dumps(display_request).encode())
+        response = self.client_socket.recv(1024)
+        response_data = json.loads(response.decode())
+        print(response_data['message'])
+        menu = pd_df(data=response_data['menu'], columns=response_data['columns'])
+        print(menu.to_string(index=False))
+        
         

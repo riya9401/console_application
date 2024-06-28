@@ -20,9 +20,9 @@ def handle_client(client_socket):
                 break
             request_data = json.loads(request)
             action = request_data['action']
-            if action in ['validate_user','auth_user']:
+            if action in ['validate_user','auth_user','logout']:
                 response = auth_controller.handle_request(request_data)
-            elif action in ['add_food_item', 'update_food_item', 'remove_food_item', 'get_food_items']:
+            elif action in ['add_food_item', 'update_food_item', 'remove_food_item', 'get_food_items', 'view_menu']:
                 response = admin_controller.handle_request(request_data)
             # elif action == 'get_recommendations' or action == 'rollout_menu':
             #     response = chef_controller.handle_request(request_data)

@@ -12,3 +12,5 @@ class AdminController:
             return self.admin_service.update_food_item(request['data'])
         elif action == 'remove_food_item':
             return self.admin_service.remove_food_item(request['data'])
+        elif action == 'view_menu':
+            return self.admin_service.view_menu()

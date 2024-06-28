@@ -37,3 +37,10 @@ class AdminRepository:
         item = self.db.execute_query(query,params=(food_item_data['id'],))
         message = f"{itemName[0][0]} is removed from cafeteria."
         return {'status': 'success', 'message': message, 'item_id': food_item_data['id']}
+    
+    def view_all_items(self):
+        query  = "SELECT * FROM {}".format(self.table_name)
+        menu = self.db.execute_query(query)
+        message = "Cafeteria Menu:"
+        coulumns = ["item_id","name","price","availability","category"]
+        return {'status': 'success', 'message': message, 'menu': menu, "columns": coulumns}

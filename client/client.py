@@ -16,7 +16,8 @@ def main():
         print(f"{authenticate_status['role']} {authenticate_status['message']}")
         if authenticate_status['role'] == 'admin':
             admin_client = AdminClient(client_socket)
-            admin_client.handle_admin_actions()
+            if admin_client.handle_admin_actions() == 'logOut':
+                logoutStatus = auth_client.logout()
         else:
             return None
         # Add handling for other roles like 'chef', 'employee'

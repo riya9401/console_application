@@ -15,3 +15,6 @@ class AdminService:
     def remove_food_item(self, food_item_data):
         # Business logic for updating a food item
         return self.admin_repository.remove(food_item_data)
+    
+    def view_menu(self):
+        return self.admin_repository.view_all_items()
