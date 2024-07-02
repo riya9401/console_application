@@ -19,3 +19,4 @@ class Database:
             return self.cursor.fetchall()
         else:
             self.conn.commit()
+            

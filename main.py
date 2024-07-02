@@ -1,18 +1,19 @@
 import socket
 import threading
 import json
+from decimal import Decimal
 from config.configuration import Settings
 from admin.admin_controller import AdminController
-# from chef.chef_controller import ChefController
-# from employee.employee_controller import EmployeeController
+from chef.chef_controller import ChefController
+from employee.employee_controller import EmployeeController
 from auth.auth_controller import AuthController
 
 def handle_client(client_socket):
     try:
         auth_controller = AuthController()
         admin_controller = AdminController()
-        # chef_controller = ChefController()
-        # employee_controller = EmployeeController()
+        chef_controller = ChefController()
+        employee_controller = EmployeeController()
 
         while True:
             request = client_socket.recv(1024).decode('utf-8')
@@ -24,10 +25,10 @@ def handle_client(client_socket):
                 response = auth_controller.handle_request(request_data)
             elif action in ['add_food_item', 'update_food_item', 'remove_food_item', 'get_food_items', 'view_menu']:
                 response = admin_controller.handle_request(request_data)
-            # elif action == 'get_recommendations' or action == 'rollout_menu':
-            #     response = chef_controller.handle_request(request_data)
-            # elif action == 'vote_for_food_item' or action == 'view_menu' or action == 'provide_feedback':
-            #     response = employee_controller.handle_request(request_data)
+            elif action in ['get_recommendations', 'rollout_menu']:
+                response = chef_controller.handle_request(request_data)
+            elif action in ['display_RolledOutMenu','vote_for_food_item','get_recommendation_employee', 'view_menu', 'provide_feedback', 'my_todays_orders']:
+                response = employee_controller.handle_request(request_data)
             else:
                 response = {'status': 'error', 'message': 'Invalid action'}
             client_socket.send(json.dumps(response).encode())
