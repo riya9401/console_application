@@ -33,7 +33,10 @@ class EmployeeClient:
                     if not isExit:
                         self.vote_for_food_item()
             elif choice == '2':
-                self.getMyTodayOrders()
+                emp_order = self.getMyTodayOrders()
+                if emp_order<=0:
+                    print("Select the item id From the below menu.....")
+                    self.view_menu()
                 self.provide_feedback()
             elif choice == '3':
                 self.view_recommendations()
@@ -127,5 +130,9 @@ class EmployeeClient:
         self.client_socket.sendall(json.dumps(request).encode())
         response = self.client_socket.recv(1024)
         response_data = json.loads(response.decode())
-        menu = pd_df(data=response_data['orders'],columns=response_data['columns'])
-        print(f"Dear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
+        if len(response_data['orders'])<=0:
+            print(f"Dear {self.details['name']}, You haven't vote for today's menu")
+        else:
+            menu = pd_df(data=response_data['orders'],columns=response_data['columns'])
+            print(f"Dear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
+        return len(response_data['orders'])

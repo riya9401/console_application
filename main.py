@@ -35,8 +35,8 @@ def handle_client(client_socket):
     except Exception as e:
         print(f"Error handling client: {e}")
     finally:
-        client_socket.close()
-        # pass
+        # client_socket.close()
+        pass
 
 if __name__ == "__main__":
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

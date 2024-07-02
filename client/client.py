@@ -19,7 +19,7 @@ def main():
         user = {
             'user_id': is_validUser['user'][0][0],
             'name': is_validUser['user'][0][1],
-            'role': authenticate_status['role']
+            'role': authenticate_status['role'].lower()
         }
         if user['role'] == 'admin':
             admin_client = AdminClient(client_socket)

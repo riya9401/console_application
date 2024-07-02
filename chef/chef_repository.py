@@ -8,11 +8,11 @@ class ChefRepository:
         self.daily_menu = 'daily_menu'
         self.rcmd = 'recommendation'
         self.feedback = 'feedback'
+        self.scoring = 'item_score'
         
     def getMenuRecoomendation(self, request_data):
-        # query =  "SELECT item.item_id, item.name, fb.rating AS rating, item.category FROM {} item LEFT JOIN {} fb ON fb.item_id = item.item_id WHERE LOWER(item.availability) RLIKE '{}' OR LOWER(item.availability) = 'all' UNION SELECT item.item_id, item.name, fb.rating AS rating, item.category FROM {} item RIGHT JOIN {} fb ON fb.item_id = item.item_id WHERE LOWER(item.availability) RLIKE '{}' OR LOWER(item.availability) = 'all' ORDER BY rating DESC LIMIT;".format(self.source_menu_table,self.feedback,request_data['menu_category'].lower(),self.source_menu_table,self.feedback,request_data['menu_category'].lower(),request_data['max_items'])
-        query =  "SELECT item.item_id, item.name, fb.rating AS rating, item.category FROM {} item LEFT JOIN {} fb ON fb.item_id = item.item_id WHERE LOWER(item.availability) RLIKE '{}' OR LOWER(item.availability) = 'all' ORDER BY rating DESC LIMIT {};".format(self.source_menu_table,self.feedback,request_data['menu_category'].lower(),request_data['max_items'])
-        rcmd_menu = self.db.execute_query(query)
+        query =  "SELECT item.item_id,item.name,cast(score.average_rating as char),cast(score.average_sentiment as char) from {} item left join {} score on item.item_id = score.item_id where lower(item.availability) in (%s, 'all') order by score.average_rating DESC, score.average_sentiment DESC limit {};".format(self.source_menu_table,self.scoring,request_data['max_items'])
+        rcmd_menu = self.db.execute_query(query,params=(request_data['menu_category'].lower(),))
         message = f"Menu recommendation for {request_data['menu_category']}"
         return {'status': 'success', 'message': message, 'recommendation': rcmd_menu}
 

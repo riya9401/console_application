@@ -8,6 +8,7 @@ class EmployeeRepository:
         self.vote = 'vote_item'
         self.rolledOutMenu = 'daily_menu'
         self.cafeteriaMenu = 'food_item'
+        self.scoring = 'item_score'
         
     def vote_item(self, request_data):
         query = "insert into {} (item_id,emp_id,vote_date) values (%s,%s,%s)".format(self.vote)
@@ -25,9 +26,9 @@ class EmployeeRepository:
         return {'status': 'success', 'message': message}
     
     def get_recommendation(self, request_data):
-        query =  "SELECT item.item_id, item.name, cast(fb.rating as CHAR) AS rating, item.category FROM {} item LEFT JOIN {} fb ON fb.item_id = item.item_id WHERE LOWER(item.availability) RLIKE '{}' OR LOWER(item.availability) = 'all' ORDER BY rating DESC;".format(self.cafeteriaMenu,self.feedback,request_data['menu_type'].lower())
-        recmd_item = self.db.execute_query(query)
-        columns = ['item_id','name','rating','category']
+        query = "SELECT item.item_id,item.name,cast(score.average_rating as char),cast(score.average_sentiment as char),item.category from {} item left join {} score on item.item_id = score.item_id where lower(item.availability) in (%s, 'all') order by score.average_rating DESC, score.average_sentiment DESC;".format(self.cafeteriaMenu,self.scoring)
+        recmd_item = self.db.execute_query(query,params=(request_data['menu_type'].lower(),))
+        columns = ['item_id','name','rating','score','category']
         message = f"Here are the recommendation to order item for {request_data['menu_type']}"
         
         return {'status': 'success', 'message': message, 'column': columns, 'recommendation':recmd_item}
