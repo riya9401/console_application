@@ -21,13 +21,13 @@ def handle_client(client_socket):
                 break
             request_data = json.loads(request)
             action = request_data['action']
-            if action in ['validate_user','auth_user','logout']:
+            if action in ['validate_user', 'auth_user', 'logout']:
                 response = auth_controller.handle_request(request_data)
             elif action in ['add_food_item', 'update_food_item', 'remove_food_item', 'get_food_items', 'view_menu']:
                 response = admin_controller.handle_request(request_data)
             elif action in ['get_recommendations', 'rollout_menu']:
                 response = chef_controller.handle_request(request_data)
-            elif action in ['display_RolledOutMenu','vote_for_food_item','get_recommendation_employee', 'view_menu', 'provide_feedback', 'my_todays_orders']:
+            elif action in ['display_RolledOutMenu', 'vote_for_food_item', 'get_recommendation_employee', 'view_menu', 'provide_feedback', 'my_todays_orders', 'save_profile', 'get_profile']:
                 response = employee_controller.handle_request(request_data)
             else:
                 response = {'status': 'error', 'message': 'Invalid action'}
@@ -37,6 +37,7 @@ def handle_client(client_socket):
     finally:
         # client_socket.close()
         pass
+
 
 if __name__ == "__main__":
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

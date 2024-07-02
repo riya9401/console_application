@@ -24,3 +24,12 @@ class EmployeeService:
     
     def displayRolledOutMenu(self,food_item_data):
         return self.employee_repository.displayRolledOutMenu(food_item_data)
+    
+    def saveProfile(self, profile_data):
+        return self.employee_repository.save_profile(profile_data)
+
+    def getProfile(self, emp_id):
+        return self.employee_repository.get_profile(emp_id)
+
+    def getRecommendation_accToPrefrence(self, food_item_data):
+        return self.employee_repository.get_recommendation_with_profile(food_item_data['emp_id'], food_item_data['menu_type'])

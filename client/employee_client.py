@@ -4,48 +4,74 @@ from pandas import DataFrame as pd_df
 from nltk.sentiment import SentimentIntensityAnalyzer
 
 class EmployeeClient:
-    def __init__(self, client_socket,employee_details):
+    def __init__(self, client_socket, employee_details):
         self.client_socket = client_socket
         self.sia = SentimentIntensityAnalyzer()
         self.action = {
-            1:"Vote for Food Item",
+            1: "Vote for Food Item",
             2: "Provide Feedback",
             3: "View Recommendations",
             4: "View Menu",
-            5: "Log Out"
+            5: "Update Profile",
+            6: "Log Out"
         }
         self.menu_category = {
-            1 : "Breakfast",
-            2 : "Lunch",
-            3 : "Dinner"}
+            1: "Breakfast",
+            2: "Lunch",
+            3: "Dinner"
+        }
         self.details = employee_details
 
     def handle_employee_actions(self):
         while True:
             print(f"Welcome {self.details['name']}")
-            for task in self.action:  
-                print(f"{task}. {self.action[task]}") 
+            for task in self.action:
+                print(f"{task}. {self.action[task]}")
             choice = input("Enter choice: ")
             if choice == '1':
-                isExit= False
+                isExit = False
                 while not isExit:
                     isExit = self.viewRolledOutMenu()
                     if not isExit:
                         self.vote_for_food_item()
             elif choice == '2':
                 emp_order = self.getMyTodayOrders()
-                if emp_order<=0:
-                    print("Select the item id From the below menu.....")
+                if emp_order <= 0:
+                    print("Select the item id from the below menu.....")
                     self.view_menu()
                 self.provide_feedback()
             elif choice == '3':
                 self.view_recommendations()
-            elif choice=='4':
+            elif choice == '4':
                 self.view_menu()
             elif choice == '5':
+                self.update_profile()
+            elif choice == '6':
                 return 'logOut'
             else:
                 print(f"Invalid choice, try again...")
+                
+    def update_profile(self):
+        print("Please answer these questions to update your profile:")
+        food_type = input("1) Please select one - Vegetarian, Non-Vegetarian, Eggetarian: ")
+        spice_level = input("2) Please select your spice level - High, Medium, Low: ")
+        preference = input("3) What do you prefer most? - North Indian, South Indian, Other: ")
+        sweet_tooth = input("4) Do you have a sweet tooth? - Yes, No: ")
+
+        profile_data = {
+            'action': 'save_profile',
+            'data': {
+                'emp_id': self.details['user_id'],
+                'food_type': food_type,
+                'spice_level': spice_level,
+                'preference': preference,
+                'sweet_tooth': sweet_tooth
+            }
+        }
+        self.client_socket.sendall(json.dumps(profile_data).encode())
+        response = self.client_socket.recv(1024)
+        response_data = json.loads(response.decode())
+        print(response_data['message'])
 
     def vote_for_food_item(self):
         menu_id = int(input("Enter food ID to vote for: "))

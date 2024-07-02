@@ -9,7 +9,30 @@ class EmployeeRepository:
         self.rolledOutMenu = 'daily_menu'
         self.cafeteriaMenu = 'food_item'
         self.scoring = 'item_score'
-        
+        self.profile = 'employee_profile'
+        self.itemDescription = 'item_description'
+    
+    def save_profile(self, profile_data):
+        if self.isProfileExists(profile_data['emp_id']) != []:
+            query = "UPDATE {} SET food_type=%s, spice_level=%s, preference=%s, sweet_tooth=%s where emp_id=%s".format(self.profile)
+            self.db.execute_query(query, params=(profile_data['food_type'],profile_data['spice_level'],profile_data['preference'],profile_data['sweet_tooth'],profile_data['emp_id']))
+        else:
+            query = "INSERT INTO {} (emp_id, food_type, spice_level, preference, sweet_tooth) VALUES (%s,%s,%s,%s,%s)".format(self.profile)
+            self.db.execute_query(query, params=(profile_data['emp_id'],profile_data['food_type'],profile_data['spice_level'],profile_data['preference'],profile_data['sweet_tooth']))
+        return {'status': 'success', 'message': 'Profile updated successfully'}
+    
+    def isProfileExists(self,employee):
+        query = 'select profile_id from {} where emp_id=%s;'.format(self.profile)
+        profileId = self.db.execute_query(query, params=(employee,))
+        return profileId
+    
+    def get_profile(self, emp_id):
+        query = "SELECT * FROM {} WHERE emp_id = %s".format(self.profile)
+        result = self.db.execute_query(query, params=(emp_id,))
+        if result:
+            return result
+        return None
+    
     def vote_item(self, request_data):
         query = "insert into {} (item_id,emp_id,vote_date) values (%s,%s,%s)".format(self.vote)
         nxt_day = datetime.now() + timedelta(days=1)
@@ -32,6 +55,35 @@ class EmployeeRepository:
         message = f"Here are the recommendation to order item for {request_data['menu_type']}"
         
         return {'status': 'success', 'message': message, 'column': columns, 'recommendation':recmd_item}
+    
+    def get_recommendation_with_profile(self, emp_id, menu_type):
+        profile = self.get_profile(emp_id)
+        query = "SELECT item.item_id, item.name, item_d.foodType, item_d.spiceLevel, item_d.prefrenceType, cast(score.average_rating as char), cast(score.average_sentiment as char) FROM {} item LEFT JOIN {} score ON item.item_id = score.item_id left join {} item_d on item.item_id=item_d.item_id WHERE LOWER(item.availability) IN (%s, 'all') ORDER BY score.average_rating DESC, score.average_sentiment DESC".format(self.cafeteriaMenu, self.scoring,self.itemDescription)
+        recmd_item = self.db.execute_query(query, params=(menu_type.lower(),))
+        
+        if profile:
+            recmd_item = self.filter_recommendations_based_on_profile(recmd_item, profile)
+        
+        columns = ['item_id', 'name', 'food_type', 'spice_level', 'preference', 'rating', 'score']
+        message = f"Here are the recommendations for {menu_type}"
+        
+        return {'status': 'success', 'message': message, 'column': columns, 'recommendation': recmd_item}
+    
+    def filter_recommendations_based_on_profile(self, recommendations, profile):
+        def get_preference_score(item, profile):
+            score = 0
+            if item[4].lower() == profile[0][4].lower():    #preference matches
+                score += 1
+            if profile[0][3].lower() == item[3].lower():    #spice level matches
+                score += 1
+            if profile[0][2].lower() == item[2].lower():    #food type veg/non-veg/egg matches
+                score += 1
+            if profile[0][5].lower() == 'yes' and (item[4].lower() in ['desert',] or item[3].lower()== 'none' ):   #sweet tooth matches
+                score += 1
+            return score
+        
+        recommendations.sort(key=lambda x: get_preference_score(x, profile), reverse=True)
+        return recommendations
     
     def view_all_items(self):
         query  = "SELECT * FROM {}".format(self.cafeteriaMenu)
