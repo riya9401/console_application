@@ -35,13 +35,20 @@ class AdminClient:
         price = input("Enter food item price: ")
         availability = input("Enter item availability: ")
         category = input("Enter item category: ")
+        food_type = input("Enter item food type: ")
+        spice_level = input("Enter item spice level: ")
+        preference = input("Enter item preference type: ")
+        
         create_request = {
             'action': 'add_food_item',
             'data': {
                 'name': name,
                 'price': price,
                 'availability': availability,
-                'category': category
+                'category': category,
+                'food_type':food_type,
+                'spice_level':spice_level,
+                'preference': preference
             }
         }
         self.client_socket.sendall(json.dumps(create_request).encode())
@@ -50,16 +57,19 @@ class AdminClient:
         print(response_data['message'])
         
     def update_food_item(self):
-        item_id = input("Enter food item ID: ")
+        item_id = int(input("Enter food item ID: "))
         item = {1 : "Item Name",
-                       2 : "Price",
-                       3 : "Availability",
-                       4 : "Category"}
+                2 : "Price",
+                3 : "Availability",
+                4 : "Category",
+                5 : "Food Type",
+                6 : "Preference",
+                7 : "Spice Level"}
         while True:
             for property in item:
                 print(f"{property}. {item[property]}")
             field = int(input("chosse the option needed to be update: "))
-            if field in range(1,5):
+            if field in range(1,8):
                 break
             else:
                 print("Invalid property, please choose property need to be change from the below menu....")

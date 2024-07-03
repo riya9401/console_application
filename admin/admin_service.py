@@ -6,15 +6,21 @@ class AdminService:
 
     def add_food_item(self, food_item_data):
         # check if food item already exists
-        return self.admin_repository.add(food_item_data)
+        newItem =  self.admin_repository.add(food_item_data)
+        notification = self.admin_repository.sendNotification("newItemAdded",food_item_data)
+        return newItem
 
     def update_food_item(self, food_item_data):
         #check if food item already exists
-        return self.admin_repository.update(food_item_data)
+        updatedItem = self.admin_repository.update(food_item_data)
+        notification = self.admin_repository.sendNotification("itemupdated",food_item_data)
+        return updatedItem
     
     def remove_food_item(self, food_item_data):
         # Business logic for updating a food item
-        return self.admin_repository.remove(food_item_data)
+        removedItem = self.admin_repository.remove(food_item_data)
+        notification = self.admin_repository.sendNotification("itemRemoved",food_item_data)
+        return removedItem
     
     def view_menu(self):
         return self.admin_repository.view_all_items()
