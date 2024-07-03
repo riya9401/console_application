@@ -14,3 +14,8 @@ class AdminController:
             return self.admin_service.remove_food_item(request['data'])
         elif action == 'view_menu':
             return self.admin_service.view_menu()
+        elif action == 'view_discard_list':
+            return self.admin_service.view_discard_list()
+        elif action == 'review_discard_list':
+            return self.admin_service.review_discard_list(request['data'])
+

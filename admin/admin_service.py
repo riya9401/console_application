@@ -18,3 +18,12 @@ class AdminService:
     
     def view_menu(self):
         return self.admin_repository.view_all_items()
+    
+    def view_discard_list(self):
+        return self.admin_repository.get_discard_list()
+    
+    def review_discard_list(self, data):
+        if data['action'] == 'remove':
+            return self.admin_repository.remove_item_by_name(data['item_name'])
+        elif data['action'] == 'get_feedback':
+            return self.admin_repository.request_feedback(data['item_name'])

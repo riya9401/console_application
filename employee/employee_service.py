@@ -33,3 +33,9 @@ class EmployeeService:
 
     def getRecommendation_accToPrefrence(self, food_item_data):
         return self.employee_repository.get_recommendation_with_profile(food_item_data['emp_id'], food_item_data['menu_type'])
+    
+    def getNotifications(self, emp_id):
+        return self.employee_repository.get_notifications(emp_id)
+    
+    def provideFeedback_discardItem(self, emp_id):
+        return self.employee_repository.provideFeedback_discardItems(emp_id)

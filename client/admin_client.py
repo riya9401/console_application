@@ -8,7 +8,8 @@ class AdminClient:
                       2 : "Update Item Info",
                       3 : "Remove Item from Cafeteria",
                       4 : "View Menu",
-                      5 : "Log Out"}
+                      5 : "View Discard Menu Item List",
+                      6 : "Log Out"}
 
     def handle_admin_actions(self):
         while True:
@@ -25,6 +26,8 @@ class AdminClient:
             elif choice == '4':
                 self.view_menu()
             elif choice == '5':
+                self.view_discard_list()
+            elif choice == '6':
                 return 'logOut'
 
     def add_food_item(self):
@@ -95,5 +98,49 @@ class AdminClient:
         print(response_data['message'])
         menu = pd_df(data=response_data['menu'], columns=response_data['columns'])
         print(menu.to_string(index=False))
-        
-        
+    
+    def view_discard_list(self):
+        discard_request = {
+            'action': 'view_discard_list',
+        }
+        self.client_socket.sendall(json.dumps(discard_request).encode())
+        response = self.client_socket.recv(1024)
+        response_data = json.loads(response.decode())
+        if response_data['status'] == 'success':
+            discard_list = pd_df(data=response_data['discard_list'], columns=["name", "avg_rating", "sentiments"])
+            print("\nDiscard Menu Item List:")
+            print(discard_list.to_string(index=False))
+            print("\nOptions:")
+            print("1. Remove the Food Item from Menu List")
+            print("2. Get Detailed Feedback")
+            choice = input("Enter choice: ")
+            if choice == '1':
+                item_name = input("Enter the food item name to remove: ")
+                review_request = {
+                    'action': 'review_discard_list',
+                    'data': {
+                        'action': 'remove',
+                        'item_name': item_name
+                    }
+                }
+            elif choice == '2':
+                item_name = input("Enter the food item name to get feedback: ")
+                review_request = {
+                    'action': 'review_discard_list',
+                    'data': {
+                        'action': 'get_feedback',
+                        'item_name': item_name
+                    }
+                }
+            else:
+                print("Invalid choice.")
+                return
+            self.client_socket.sendall(json.dumps(review_request).encode())
+            response = self.client_socket.recv(1024)
+            response_data = json.loads(response.decode())
+            if response_data['status'] == 'success' and choice == '2':
+                print("\nNotification to be sent to users")
+            else:
+                print(response_data['message'])
+        else:
+            print(response_data['message'])

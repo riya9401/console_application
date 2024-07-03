@@ -11,6 +11,8 @@ class EmployeeRepository:
         self.scoring = 'item_score'
         self.profile = 'employee_profile'
         self.itemDescription = 'item_description'
+        self.notification = 'user_notification'
+        self.discardItemsFeedback = 'discard_item_employee_feedback'
     
     def save_profile(self, profile_data):
         if self.isProfileExists(profile_data['emp_id']) != []:
@@ -108,3 +110,19 @@ class EmployeeRepository:
         coulumns = ["item_id","name"]
         
         return {'status': 'success', 'message': message, 'orders': my_orders, "columns": coulumns}
+    
+    def get_notifications(self, emp_id):
+        query = "SELECT * FROM {} WHERE user_id = %s".format(self.notification)
+        notifications = self.db.execute_query(query, params=(emp_id,))
+        columns = ["notification_id", "notification_type", "emp_id", "notification",'item_name']
+        self.clearNotification(emp_id,notifications)
+        return {'status': 'success', 'message': "Your notifications:", 'notification': notifications,"columns": columns}
+    
+    def clearNotification(self,emp,notifications):
+        for notification_id in notifications:
+            query  = 'DELETE FROM {} where notify_type = %s and item_name = %s and user_id = %s'.format(self.notification)
+            self.db.execute_query(query,params=(notification_id[1],notification_id[4],notification_id[2]))
+            
+    def provideFeedback_discardItems(self, feedback):
+        query = "insert into {} (item_name,emp_id,discard_reason,taste_suggestion,recipe_suggestion) values (%s,%s,%s,%s,%s)".format(self.discardItemsFeedback)
+        self.db.execute_query(query,params=(feedback['data']['item_name'],feedback['data']['emp_id'],feedback['fb'][1],feedback['fb'][2],feedback['fb'][3]))

@@ -22,3 +22,7 @@ class EmployeeController:
             return self.employee_service.saveProfile(request['data'])
         elif action == 'get_profile':
             return self.employee_service.getProfile(request['data']['emp_id'])
+        elif action == 'get_notifications':
+            return self.employee_service.getNotifications(request['data']['emp_id'])
+        elif action == 'provideFeedback_discardItem':
+            return self.employee_service.provideFeedback_discardItem(request['data'])

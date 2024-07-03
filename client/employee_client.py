@@ -13,7 +13,8 @@ class EmployeeClient:
             3: "View Recommendations",
             4: "View Menu",
             5: "Update Profile",
-            6: "Log Out"
+            6: "view notifications",
+            7: "Log Out"
         }
         self.menu_category = {
             1: "Breakfast",
@@ -24,7 +25,7 @@ class EmployeeClient:
 
     def handle_employee_actions(self):
         while True:
-            print(f"Welcome {self.details['name']}")
+            print(f"\nWelcome {self.details['name']}")
             for task in self.action:
                 print(f"{task}. {self.action[task]}")
             choice = input("Enter choice: ")
@@ -47,6 +48,8 @@ class EmployeeClient:
             elif choice == '5':
                 self.update_profile()
             elif choice == '6':
+                self.display_notifications()
+            elif choice == '7':
                 return 'logOut'
             else:
                 print(f"Invalid choice, try again...")
@@ -162,3 +165,49 @@ class EmployeeClient:
             menu = pd_df(data=response_data['orders'],columns=response_data['columns'])
             print(f"Dear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
         return len(response_data['orders'])
+
+    def display_notifications(self):
+        notification_request = {
+            'action': 'get_notifications',
+            'data': {
+                'emp_id': self.details['user_id']
+            }
+        }
+        self.client_socket.sendall(json.dumps(notification_request).encode())
+        response = self.client_socket.recv(1024)
+        response_data = json.loads(response.decode())
+        if len(response_data['notification'])>0:
+            for notification in response_data['notification']:
+                print(f"{notification[1]}:\n\t{notification[3]}")
+                if notification[1].lower()=='feedback_required':
+                    feedback = self.getFeedback(notification[1])
+                    feedback['data']={'emp_id':notification[2],'item_name':notification[4]}
+                    self.provideFeedback_discardItem(feedback)
+        else:
+            print("No new notification found.")
+        
+    def getFeedback(self, feedback_type):
+        feedback = {}
+        if feedback_type == 'feedback_required':
+            questions = {
+                1 : f"What didn’t you like?",
+                2 : f"How would you like this to taste?",
+                3 : "Share your mom’s recipe."
+            }
+            for ques_num in questions:
+                feedback[ques_num] = input(f"\t{questions[ques_num]}\n\t")
+                
+        return feedback
+    
+    def provideFeedback_discardItem(self, feedback):
+        reuest = {
+            'action': 'provideFeedback_discardItem',
+            'data': {
+                'feedback': feedback,
+                'emp_id': self.details['user_id']}
+        }
+        self.client_socket.sendall(json.dumps(reuest).encode())
+        response = self.client_socket.recv(1024)
+        response_data = json.loads(response.decode())
+        print(response_data['message'])
+

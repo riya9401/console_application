@@ -13,7 +13,6 @@ class AuthRepository:
         
         if not result:
             return {'status': 'error', 'message': 'User not found'}
-        # return {'status': 'success', 'message': 'valid user', 'user_id': result[0][0]}
         return {'status': 'success', 'message': 'valid user', 'user': result}
     
     def authenticate(self, user_data):
@@ -26,4 +25,6 @@ class AuthRepository:
             query = "SELECT user_role FROM user_access WHERE user_id=%s"
             result = self.db.execute_query(query, params=(user_data["userId"],))
             
-        return {'status': 'success', 'message': 'Login successful', 'role': result[0][0], 'user_id':user_data["userId"]}
+        response = {'status': 'success', 'message': 'Login successful', 'role': result[0][0], 'user_id':user_data["userId"]}
+            
+        return response
