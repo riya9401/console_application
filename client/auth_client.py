@@ -16,8 +16,7 @@ class AuthClient:
         }
         try:
             self.client_socket.sendall(json.dumps(login_request).encode('utf-8'))
-            response = self.client_socket.recv(1024)
-            response_data = json.loads(response.decode())
+            response_data = self.getResponse()
             return response_data
         except Exception as e:
             print(f"Error during login: {e}")
@@ -33,8 +32,7 @@ class AuthClient:
         }
         try:
             self.client_socket.sendall(json.dumps(login_request).encode('utf-8'))
-            response = self.client_socket.recv(1024)
-            response_data = json.loads(response.decode())
+            response_data = self.getResponse()
             return response_data
         except Exception as e:
             print(f"Error during login: {e}")
@@ -46,6 +44,18 @@ class AuthClient:
             "data": {}
         }
         self.client_socket.sendall(json.dumps(logout_request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         print(response_data['message'])
+        
+    def getResponse(self):
+        response_size = json.loads(self.client_socket.recv(1024).decode())
+        response = b''
+        chunk = ''
+        while response_size:
+            chunk = self.client_socket.recv(1024)
+            if not chunk:
+                break
+            response += chunk
+            response_size -= len(chunk)
+        response_data = json.loads(response.decode())
+        return response_data

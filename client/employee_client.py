@@ -72,8 +72,7 @@ class EmployeeClient:
             }
         }
         self.client_socket.sendall(json.dumps(profile_data).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         print(response_data['message'])
 
     def vote_for_food_item(self):
@@ -86,15 +85,13 @@ class EmployeeClient:
                     }
         }
         self.client_socket.sendall(json.dumps(vote_request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         print(response_data['message'])
 
     def view_menu(self):
         request = {'action': 'view_menu'}
         self.client_socket.sendall(json.dumps(request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         menu = pd_df(data=response_data['menu'],columns=response_data['columns'])
         print(f"{response_data['message']}\n {menu.to_string(index=False)}")
 
@@ -107,8 +104,7 @@ class EmployeeClient:
             return True
         request = {'action': 'display_RolledOutMenu', 'data':{'menu_type': self.menu_category[menu_type]}}
         self.client_socket.sendall(json.dumps(request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         menu = pd_df(data=response_data['menu'],columns=response_data['columns'])
         print(f"{response_data['message']}\n {menu.to_string(index=False)}")
         
@@ -130,8 +126,7 @@ class EmployeeClient:
             
         }
         self.client_socket.sendall(json.dumps(feedback_request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         print(response_data['message'])
         
     def view_recommendations(self):
@@ -145,8 +140,7 @@ class EmployeeClient:
                    }
         }
         self.client_socket.sendall(json.dumps(request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         menu = pd_df(data=response_data['recommendation'],columns=response_data['column'])
         print(f"{response_data['message']}\n {menu.to_string(index=False)}")
         
@@ -157,8 +151,7 @@ class EmployeeClient:
                    }
         }
         self.client_socket.sendall(json.dumps(request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         if len(response_data['orders'])<=0:
             print(f"Dear {self.details['name']}, You haven't vote for today's menu")
         else:
@@ -174,8 +167,7 @@ class EmployeeClient:
             }
         }
         self.client_socket.sendall(json.dumps(notification_request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         if len(response_data['notification'])>0:
             for notification in response_data['notification']:
                 print(f"{notification[1]}:\n\t{notification[3]}")
@@ -195,19 +187,29 @@ class EmployeeClient:
                 3 : "Share your mom’s recipe."
             }
             for ques_num in questions:
-                feedback[ques_num] = input(f"\t{questions[ques_num]}\n\t")
+                feedback[f'{ques_num}'] = input(f"\t{questions[ques_num]}\n\t")
                 
         return feedback
     
     def provideFeedback_discardItem(self, feedback):
+        data = feedback
+        data['emp_id'] = self.details['user_id']
         reuest = {
             'action': 'provideFeedback_discardItem',
-            'data': {
-                'feedback': feedback,
-                'emp_id': self.details['user_id']}
+            'data':data
         }
         self.client_socket.sendall(json.dumps(reuest).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         print(response_data['message'])
 
+    def getResponse(self):
+        response = b''
+        response_size = json.loads(self.client_socket.recv(1024).decode())
+        while response_size:
+            chunk = self.client_socket.recv(1024)
+            if not chunk:
+                break
+            response += chunk
+            response_size -= len(chunk)
+        response_data = json.loads(response.decode())
+        return response_data

@@ -43,8 +43,7 @@ class ChefClient:
             }
             }
         self.client_socket.sendall(json.dumps(request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         menu = pd_df(data=response_data['recommendation'],columns=["item_id","name","rating","category"])
         print(f"{response_data['message']}\n {menu.to_string(index=False)}")
         
@@ -65,8 +64,7 @@ class ChefClient:
                 'item': items}
         }
         self.client_socket.sendall(json.dumps(rollout_request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         print(response_data['message'])
 
     def getMonthlyFbReport(self):
@@ -81,7 +79,18 @@ class ChefClient:
             "month": month,
         }
         self.client_socket.sendall(json.dumps(monthlyReport_request).encode())
-        response = self.client_socket.recv(1024)
-        response_data = json.loads(response.decode())
+        response_data = self.getResponse()
         print(response_data['message'])
+        
+    def getResponse(self):
+        response = b''
+        response_size = json.loads(self.client_socket.recv(1024).decode())
+        while response_size:
+            chunk = self.client_socket.recv(1024)
+            if not chunk:
+                break
+            response += chunk
+            response_size -= len(chunk)
+        response_data = json.loads(response.decode())
+        return response_data
     

@@ -125,4 +125,5 @@ class EmployeeRepository:
             
     def provideFeedback_discardItems(self, feedback):
         query = "insert into {} (item_name,emp_id,discard_reason,taste_suggestion,recipe_suggestion) values (%s,%s,%s,%s,%s)".format(self.discardItemsFeedback)
-        self.db.execute_query(query,params=(feedback['data']['item_name'],feedback['data']['emp_id'],feedback['fb'][1],feedback['fb'][2],feedback['fb'][3]))
+        self.db.execute_query(query,params=(feedback['data']['item_name'],feedback['data']['emp_id'],feedback['1'],feedback['2'],feedback['3']))
+        return {'status': 'success', 'message': "Your feebdback got registered, Thanks you for sharing your feedback."}
