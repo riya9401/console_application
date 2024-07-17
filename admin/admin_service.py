@@ -58,8 +58,3 @@ class AdminService:
             print(f"Error reviewing discard list: {e}")
             return {'status': 'error', 'message': str(e)}
 
-# Example usage
-if __name__ == "__main__":
-    service = AdminService()
-    print(service.add_food_item({'name': 'Pizza', 'price': 10.99}))
-    print(service.view_menu())

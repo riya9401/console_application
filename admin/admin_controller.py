@@ -9,8 +9,7 @@ class AdminController:
             'remove_food_item': self.admin_service.remove_food_item,
             'view_menu': self.admin_service.view_menu,
             'view_discard_list': self.admin_service.view_discard_list,
-            'review_discard_list': self.admin_service.review_discard_list,
-            # 'get_food_item_details': self.admin_service.get_food_item_details
+            'review_discard_list': self.admin_service.review_discard_list
         }
 
     def handle_request(self, request):

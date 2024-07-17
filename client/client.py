@@ -3,12 +3,9 @@ from admin_client import AdminClient
 from auth_client import AuthClient
 from chef_client import ChefClient
 from employee_client import EmployeeClient
-# from config.configuration import Settings
 
 def main():
-    # pass
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # settings = Settings()
     client_socket.connect(("localhost", 23327))
 
     auth_client = AuthClient(client_socket)
@@ -35,9 +32,6 @@ def main():
                 logoutStatus = auth_client.logout()
         else:
             return None
-
-    # auth_client.logout()
-    # client_socket.close()
 
 if __name__ == "__main__":
     main()

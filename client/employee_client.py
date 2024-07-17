@@ -13,7 +13,7 @@ class EmployeeClient:
             3: "View Recommendations",
             4: "View Menu",
             5: "Update Profile",
-            6: "view notifications",
+            6: "View Notifications",
             7: "Log Out"
         }
         self.menu_category = {
@@ -29,187 +29,190 @@ class EmployeeClient:
             for task in self.action:
                 print(f"{task}. {self.action[task]}")
             choice = input("Enter choice: ")
-            if choice == '1':
-                isExit = False
-                while not isExit:
-                    isExit = self.viewRolledOutMenu()
-                    if not isExit:
-                        self.vote_for_food_item()
-            elif choice == '2':
-                emp_order = self.getMyTodayOrders()
-                if emp_order <= 0:
-                    print("Select the item id from the below menu.....")
+            try:
+                if choice == '1':
+                    self.handle_vote_for_food()
+                elif choice == '2':
+                    self.handle_provide_feedback()
+                elif choice == '3':
+                    self.view_recommendations()
+                elif choice == '4':
                     self.view_menu()
-                self.provide_feedback()
-            elif choice == '3':
-                self.view_recommendations()
-            elif choice == '4':
-                self.view_menu()
-            elif choice == '5':
-                self.update_profile()
-            elif choice == '6':
-                self.display_notifications()
-            elif choice == '7':
-                return 'logOut'
-            else:
-                print(f"Invalid choice, try again...")
-                
+                elif choice == '5':
+                    self.update_profile()
+                elif choice == '6':
+                    self.display_notifications()
+                elif choice == '7':
+                    return 'logOut'
+                else:
+                    print(f"Invalid choice, try again...")
+            except Exception as e:
+                print(f"An error occurred: {str(e)}")
+
+    def handle_vote_for_food(self):
+        isExit = False
+        while not isExit:
+            isExit = self.view_rolled_out_menu()
+            if not isExit:
+                self.vote_for_food_item()
+
+    def handle_provide_feedback(self):
+        emp_order = self.get_my_today_orders()
+        if emp_order <= 0:
+            print("Select the item id from the below menu.....")
+            self.view_menu()
+        self.provide_feedback()
+
     def update_profile(self):
+        try:
+            profile_data = self.collect_profile_data()
+            self.send_request('save_profile', profile_data)
+        except Exception as e:
+            print(f"Failed to update profile: {str(e)}")
+
+    def collect_profile_data(self):
         print("Please answer these questions to update your profile:")
         food_type = input("1) Please select one - Vegetarian, Non-Vegetarian, Eggetarian: ")
         spice_level = input("2) Please select your spice level - High, Medium, Low: ")
         preference = input("3) What do you prefer most? - North Indian, South Indian, Other: ")
         sweet_tooth = input("4) Do you have a sweet tooth? - Yes, No: ")
-
-        profile_data = {
-            'action': 'save_profile',
-            'data': {
-                'emp_id': self.details['user_id'],
-                'food_type': food_type,
-                'spice_level': spice_level,
-                'preference': preference,
-                'sweet_tooth': sweet_tooth
-            }
+        return {
+            'emp_id': self.details['user_id'],
+            'food_type': food_type,
+            'spice_level': spice_level,
+            'preference': preference,
+            'sweet_tooth': sweet_tooth
         }
-        self.client_socket.sendall(json.dumps(profile_data).encode())
-        response_data = self.getResponse()
-        print(response_data['message'])
 
     def vote_for_food_item(self):
-        menu_id = int(input("Enter food ID to vote for: "))
-        vote_request = {
-            'action': 'vote_for_food_item',
-            'data': {
-                'item_id': menu_id,
-                'emp_id': self.details['user_id']
-                    }
-        }
-        self.client_socket.sendall(json.dumps(vote_request).encode())
-        response_data = self.getResponse()
-        print(response_data['message'])
+        try:
+            menu_id = int(input("Enter food ID to vote for: "))
+            self.send_request('vote_for_food_item', {'item_id': menu_id, 'emp_id': self.details['user_id']})
+        except Exception as e:
+            print(f"Failed to vote for food item: {str(e)}")
 
     def view_menu(self):
-        request = {'action': 'view_menu'}
-        self.client_socket.sendall(json.dumps(request).encode())
-        response_data = self.getResponse()
-        menu = pd_df(data=response_data['menu'],columns=response_data['columns'])
-        print(f"{response_data['message']}\n {menu.to_string(index=False)}")
+        try:
+            self.send_request('view_menu', {})
+        except Exception as e:
+            print(f"Failed to view menu: {str(e)}")
 
-    def viewRolledOutMenu(self):
-        for category in self.menu_category:  
-            print(f"{category}. {self.menu_category[category]}") 
+    def view_rolled_out_menu(self):
+        for category in self.menu_category:
+            print(f"{category}. {self.menu_category[category]}")
         print(f"{len(self.menu_category)+1}. Back to action menu")
         menu_type = int(input("Enter your choice: "))
         if menu_type == len(self.menu_category)+1:
             return True
-        request = {'action': 'display_RolledOutMenu', 'data':{'menu_type': self.menu_category[menu_type]}}
-        self.client_socket.sendall(json.dumps(request).encode())
-        response_data = self.getResponse()
-        menu = pd_df(data=response_data['menu'],columns=response_data['columns'])
-        print(f"{response_data['message']}\n {menu.to_string(index=False)}")
-        
+        try:
+            self.send_request('display_RolledOutMenu', {'menu_type': self.menu_category[menu_type]})
+        except Exception as e:
+            print(f"Failed to view rolled-out menu: {str(e)}")
+            return False
+
     def provide_feedback(self):
+        try:
+            item_id, rate, feedback, sentiment_score = self.collect_feedback_data()
+            feedback_data = {
+                'item_id': item_id,
+                'emp_id': self.details['user_id'],
+                'rating': rate,
+                'feedback': feedback,
+                'sentiment_score': sentiment_score
+            }
+            self.send_request('provide_feedback', feedback_data)
+        except Exception as e:
+            print(f"Failed to provide feedback: {str(e)}")
+
+    def collect_feedback_data(self):
         item_id = int(input("Enter food item ID to provide feedback for: "))
         rate = float(input("How much you rate this item: "))
-        while rate <0.0 or rate>6.0:
+        while rate < 0.0 or rate > 6.0:
             rate = float(input("How much you rate this item: "))
         feedback = input("Enter your feedback: ")
         sentiment_score = self.sia.polarity_scores(feedback)['compound']
-        feedback_request = {
-            'action': 'provide_feedback',
-            'data': {
-                'item_id': item_id,
-                'emp_id': self.details['user_id'], 
-                'rating': rate,
-                'feedback': feedback,
-                'sentiment_score': sentiment_score}
-            
-        }
-        self.client_socket.sendall(json.dumps(feedback_request).encode())
-        response_data = self.getResponse()
-        print(response_data['message'])
-        
+        return item_id, rate, feedback, sentiment_score
+
     def view_recommendations(self):
-        for category in self.menu_category:  
-            print(f"{category}. {self.menu_category[category]}") 
-        menu_type = int(input("Please enter your menu category here: "))
-        request = {'action': 'get_recommendation_employee',
-                   'data' : {
-                       'menu_type': self.menu_category[menu_type],
-                       'emp_id':self.details['user_id']
-                   }
-        }
-        self.client_socket.sendall(json.dumps(request).encode())
-        response_data = self.getResponse()
-        menu = pd_df(data=response_data['recommendation'],columns=response_data['column'])
-        print(f"{response_data['message']}\n {menu.to_string(index=False)}")
-        
-    def getMyTodayOrders(self):
-        request = {'action': 'my_todays_orders',
-                   'data':  {
-                       'emp_id': self.details['user_id'],
-                   }
-        }
-        self.client_socket.sendall(json.dumps(request).encode())
-        response_data = self.getResponse()
-        if len(response_data['orders'])<=0:
-            print(f"Dear {self.details['name']}, You haven't vote for today's menu")
-        else:
-            menu = pd_df(data=response_data['orders'],columns=response_data['columns'])
-            print(f"Dear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
-        return len(response_data['orders'])
+        try:
+            for category in self.menu_category:
+                print(f"{category}. {self.menu_category[category]}")
+            menu_type = int(input("Please enter your menu category here: "))
+            self.send_request('get_recommendation_employee', {'menu_type': self.menu_category[menu_type], 'emp_id': self.details['user_id']})
+        except Exception as e:
+            print(f"Failed to view recommendations: {str(e)}")
+
+    def get_my_today_orders(self):
+        try:
+            self.send_request('my_todays_orders', {'emp_id': self.details['user_id']})
+        except Exception as e:
+            print(f"Failed to get today's orders: {str(e)}")
+            return 0
 
     def display_notifications(self):
-        notification_request = {
-            'action': 'get_notifications',
-            'data': {
-                'emp_id': self.details['user_id']
-            }
-        }
-        self.client_socket.sendall(json.dumps(notification_request).encode())
-        response_data = self.getResponse()
-        if len(response_data['notification'])>0:
-            for notification in response_data['notification']:
+        try:
+            self.send_request('get_notifications', {'emp_id': self.details['user_id']})
+        except Exception as e:
+            print(f"Failed to display notifications: {str(e)}")
+
+    def send_request(self, action, data):
+        request = {'action': action, 'data': data}
+        self.client_socket.sendall(json.dumps(request).encode())
+        response_data = self.get_response()
+        print(response_data['message'])
+        if action == 'view_menu' or action == 'display_RolledOutMenu' or action == 'get_recommendation_employee':
+            menu = pd_df(data=response_data['menu'], columns=response_data['columns'])
+            print(f"{response_data['message']}\n {menu.to_string(index=False)}")
+        elif action == 'my_todays_orders':
+            if len(response_data['orders']) > 0:
+                menu = pd_df(data=response_data['orders'], columns=response_data['columns'])
+                print(f"Dear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
+            return len(response_data['orders'])
+        elif action == 'get_notifications':
+            self.handle_notifications(response_data['notification'])
+
+    def handle_notifications(self, notifications):
+        if len(notifications) > 0:
+            for notification in notifications:
                 print(f"{notification[1]}:\n\t{notification[3]}")
-                if notification[1].lower()=='feedback_required':
-                    feedback = self.getFeedback(notification[1])
-                    feedback['data']={'emp_id':notification[2],'item_name':notification[4]}
-                    self.provideFeedback_discardItem(feedback)
+                if notification[1].lower() == 'feedback_required':
+                    feedback = self.get_feedback(notification[1])
+                    feedback['data'] = {'emp_id': notification[2], 'item_name': notification[4]}
+                    self.provide_feedback_discard_item(feedback)
         else:
             print("No new notification found.")
-        
-    def getFeedback(self, feedback_type):
+
+    def get_feedback(self, feedback_type):
         feedback = {}
         if feedback_type == 'feedback_required':
             questions = {
-                1 : f"What didn’t you like?",
-                2 : f"How would you like this to taste?",
-                3 : "Share your mom’s recipe."
+                1: "What didn’t you like?",
+                2: "How would you like this to taste?",
+                3: "Share your mom’s recipe."
             }
             for ques_num in questions:
                 feedback[f'{ques_num}'] = input(f"\t{questions[ques_num]}\n\t")
-                
         return feedback
-    
-    def provideFeedback_discardItem(self, feedback):
-        data = feedback
-        data['emp_id'] = self.details['user_id']
-        reuest = {
-            'action': 'provideFeedback_discardItem',
-            'data':data
-        }
-        self.client_socket.sendall(json.dumps(reuest).encode())
-        response_data = self.getResponse()
-        print(response_data['message'])
 
-    def getResponse(self):
+    def provide_feedback_discard_item(self, feedback):
+        try:
+            feedback['emp_id'] = self.details['user_id']
+            self.send_request('provideFeedback_discardItem', feedback)
+        except Exception as e:
+            print(f"Failed to provide feedback for discarded item: {str(e)}")
+
+    def get_response(self):
         response = b''
-        response_size = json.loads(self.client_socket.recv(1024).decode())
-        while response_size:
-            chunk = self.client_socket.recv(1024)
-            if not chunk:
-                break
-            response += chunk
-            response_size -= len(chunk)
-        response_data = json.loads(response.decode())
-        return response_data
+        try:
+            response_size = json.loads(self.client_socket.recv(1024).decode())
+            while response_size:
+                chunk = self.client_socket.recv(1024)
+                if not chunk:
+                    break
+                response += chunk
+                response_size -= len(chunk)
+            response_data = json.loads(response.decode())
+            return response_data
+        except Exception as e:
+            print(f"Failed to get response: {str(e)}")
+            return {}

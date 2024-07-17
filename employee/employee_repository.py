@@ -6,124 +6,143 @@ class EmployeeRepository:
         self.db = Database()
         self.feedback = 'feedback'
         self.vote = 'vote_item'
-        self.rolledOutMenu = 'daily_menu'
-        self.cafeteriaMenu = 'food_item'
+        self.rolled_out_menu = 'daily_menu'
+        self.cafeteria_menu = 'food_item'
         self.scoring = 'item_score'
         self.profile = 'employee_profile'
-        self.itemDescription = 'item_description'
+        self.item_description = 'item_description'
         self.notification = 'user_notification'
-        self.discardItemsFeedback = 'discard_item_employee_feedback'
-    
+        self.discard_items_feedback = 'discard_item_employee_feedback'
+
     def save_profile(self, profile_data):
-        if self.isProfileExists(profile_data['emp_id']) != []:
-            query = "UPDATE {} SET food_type=%s, spice_level=%s, preference=%s, sweet_tooth=%s where emp_id=%s".format(self.profile)
-            self.db.execute_query(query, params=(profile_data['food_type'],profile_data['spice_level'],profile_data['preference'],profile_data['sweet_tooth'],profile_data['emp_id']))
-        else:
-            query = "INSERT INTO {} (emp_id, food_type, spice_level, preference, sweet_tooth) VALUES (%s,%s,%s,%s,%s)".format(self.profile)
-            self.db.execute_query(query, params=(profile_data['emp_id'],profile_data['food_type'],profile_data['spice_level'],profile_data['preference'],profile_data['sweet_tooth']))
-        return {'status': 'success', 'message': 'Profile updated successfully'}
+        try:
+            if self.is_profile_exists(profile_data['emp_id']):
+                self._update_profile(profile_data)
+            else:
+                self._insert_profile(profile_data)
+            return {'status': 'success', 'message': 'Profile updated successfully'}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
-    def isProfileExists(self,employee):
-        query = 'select profile_id from {} where emp_id=%s;'.format(self.profile)
-        profileId = self.db.execute_query(query, params=(employee,))
-        return profileId
-    
+    def is_profile_exists(self, emp_id):
+        query = 'SELECT profile_id FROM {} WHERE emp_id=%s;'.format(self.profile)
+        profile_id = self.db.execute_query(query, params=(emp_id,))
+        return profile_id != []
+
+    def _update_profile(self, profile_data):
+        query = "UPDATE {} SET food_type=%s, spice_level=%s, preference=%s, sweet_tooth=%s WHERE emp_id=%s".format(self.profile)
+        self.db.execute_query(query, params=(profile_data['food_type'], profile_data['spice_level'], profile_data['preference'], profile_data['sweet_tooth'], profile_data['emp_id']))
+
+    def _insert_profile(self, profile_data):
+        query = "INSERT INTO {} (emp_id, food_type, spice_level, preference, sweet_tooth) VALUES (%s,%s,%s,%s,%s)".format(self.profile)
+        self.db.execute_query(query, params=(profile_data['emp_id'], profile_data['food_type'], profile_data['spice_level'], profile_data['preference'], profile_data['sweet_tooth']))
+
     def get_profile(self, emp_id):
-        query = "SELECT * FROM {} WHERE emp_id = %s".format(self.profile)
-        result = self.db.execute_query(query, params=(emp_id,))
-        if result:
-            return result
-        return None
+        try:
+            query = "SELECT * FROM {} WHERE emp_id = %s".format(self.profile)
+            result = self.db.execute_query(query, params=(emp_id,))
+            return result if result else None
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
     def vote_item(self, request_data):
-        query = "insert into {} (item_id,emp_id,vote_date) values (%s,%s,%s)".format(self.vote)
-        nxt_day = datetime.now() + timedelta(days=1)
-        voting = self.db.execute_query(query,params= (request_data['item_id'],request_data['emp_id'],nxt_day.strftime("%Y-%m-%d")))
-        message = f"Voting  for {request_data['item_id']} done successfully"
-        
-        return {'status': 'success', 'message': message}
+        try:
+            query = "INSERT INTO {} (item_id, emp_id, vote_date) VALUES (%s, %s, %s)".format(self.vote)
+            next_day = datetime.now() + timedelta(days=1)
+            self.db.execute_query(query, params=(request_data['item_id'], request_data['emp_id'], next_day.strftime("%Y-%m-%d")))
+            message = f"Voting for {request_data['item_id']} done successfully"
+            return {'status': 'success', 'message': message}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
 
     def provide_feedback(self, request_data):
-        query = "insert into {} (emp_id,item_id,rating,comment,sentiment,fb_date) values (%s,%s,%s,%s,%s,%s)".format(self.feedback)
-        feedback = self.db.execute_query(query,params=(request_data["emp_id"],request_data["item_id"],request_data["rating"],request_data["feedback"],request_data["sentiment_score"],datetime.now().strftime("%Y-%m-%d")))
-        message = f"feedback provided for item_id: {request_data['item_id']} by employee_id: {request_data['emp_id']}."
-        
-        return {'status': 'success', 'message': message}
+        try:
+            query = "INSERT INTO {} (emp_id, item_id, rating, comment, sentiment, fb_date) VALUES (%s, %s, %s, %s, %s, %s)".format(self.feedback)
+            self.db.execute_query(query, params=(request_data["emp_id"], request_data["item_id"], request_data["rating"], request_data["feedback"], request_data["sentiment_score"], datetime.now().strftime("%Y-%m-%d")))
+            message = f"Feedback provided for item_id: {request_data['item_id']} by employee_id: {request_data['emp_id']}."
+            return {'status': 'success', 'message': message}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
     def get_recommendation(self, request_data):
-        query = "SELECT item.item_id,item.name,cast(score.average_rating as char),cast(score.average_sentiment as char),item.category from {} item left join {} score on item.item_id = score.item_id where lower(item.availability) in (%s, 'all') order by score.average_rating DESC, score.average_sentiment DESC;".format(self.cafeteriaMenu,self.scoring)
-        recmd_item = self.db.execute_query(query,params=(request_data['menu_type'].lower(),))
-        columns = ['item_id','name','rating','score','category']
-        message = f"Here are the recommendation to order item for {request_data['menu_type']}"
-        
-        return {'status': 'success', 'message': message, 'column': columns, 'recommendation':recmd_item}
+        try:
+            query = "SELECT item.item_id, item.name, CAST(score.average_rating AS CHAR), CAST(score.average_sentiment AS CHAR), item.category FROM {} item LEFT JOIN {} score ON item.item_id = score.item_id WHERE LOWER(item.availability) IN (%s, 'all') ORDER BY score.average_rating DESC, score.average_sentiment DESC;".format(self.cafeteria_menu, self.scoring)
+            recommendations = self.db.execute_query(query, params=(request_data['menu_type'].lower(),))
+            columns = ['item_id', 'name', 'rating', 'score', 'category']
+            message = f"Here are the recommendations to order item for {request_data['menu_type']}"
+            return {'status': 'success', 'message': message, 'columns': columns, 'recommendations': recommendations}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
     def get_recommendation_with_profile(self, emp_id, menu_type):
-        profile = self.get_profile(emp_id)
-        query = "SELECT item.item_id, item.name, item_d.foodType, item_d.spiceLevel, item_d.prefrenceType, cast(score.average_rating as char), cast(score.average_sentiment as char) FROM {} item LEFT JOIN {} score ON item.item_id = score.item_id left join {} item_d on item.item_id=item_d.item_id WHERE LOWER(item.availability) IN (%s, 'all') ORDER BY score.average_rating DESC, score.average_sentiment DESC".format(self.cafeteriaMenu, self.scoring,self.itemDescription)
-        recmd_item = self.db.execute_query(query, params=(menu_type.lower(),))
-        
-        if profile:
-            recmd_item = self.filter_recommendations_based_on_profile(recmd_item, profile)
-        
-        columns = ['item_id', 'name', 'food_type', 'spice_level', 'preference', 'rating', 'score']
-        message = f"Here are the recommendations for {menu_type}"
-        
-        return {'status': 'success', 'message': message, 'column': columns, 'recommendation': recmd_item}
+        try:
+            profile = self.get_profile(emp_id)
+            query = "SELECT item.item_id, item.name, item_d.foodType, item_d.spiceLevel, item_d.preferenceType, CAST(score.average_rating AS CHAR), CAST(score.average_sentiment AS CHAR) FROM {} item LEFT JOIN {} score ON item.item_id = score.item_id LEFT JOIN {} item_d ON item.item_id = item_d.item_id WHERE LOWER(item.availability) IN (%s, 'all') ORDER BY score.average_rating DESC, score.average_sentiment DESC".format(self.cafeteria_menu, self.scoring, self.item_description)
+            recommendations = self.db.execute_query(query, params=(menu_type.lower(),))
+            if profile:
+                recommendations = self._filter_recommendations_based_on_profile(recommendations, profile)
+            columns = ['item_id', 'name', 'food_type', 'spice_level', 'preference', 'rating', 'score']
+            message = f"Here are the recommendations for {menu_type}"
+            return {'status': 'success', 'message': message, 'columns': columns, 'recommendations': recommendations}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
-    def filter_recommendations_based_on_profile(self, recommendations, profile):
+    def _filter_recommendations_based_on_profile(self, recommendations, profile):
         def get_preference_score(item, profile):
             score = 0
-            if item[4].lower() == profile[0][4].lower():    #preference matches
-                score += 1
-            if profile[0][3].lower() == item[3].lower():    #spice level matches
-                score += 1
-            if profile[0][2].lower() == item[2].lower():    #food type veg/non-veg/egg matches
-                score += 1
-            if profile[0][5].lower() == 'yes' and (item[4].lower() in ['desert',] or item[3].lower()== 'none' ):   #sweet tooth matches
+            if profile[0]['food_type'] == item[2]:
+                score += 3
+            if profile[0]['spice_level'] == item[3]:
+                score += 2
+            if profile[0]['preference'] == item[4]:
                 score += 1
             return score
-        
-        recommendations.sort(key=lambda x: get_preference_score(x, profile), reverse=True)
-        return recommendations
-    
+
+        scored_recommendations = [(get_preference_score(item, profile), item) for item in recommendations]
+        scored_recommendations.sort(key=lambda x: x[0], reverse=True)
+        return [item for _, item in scored_recommendations]
+
     def view_all_items(self):
-        query  = "SELECT * FROM {}".format(self.cafeteriaMenu)
-        menu = self.db.execute_query(query)
-        message = "Cafeteria Menu:"
-        coulumns = ["item_id","name","price","availability","category"]
-        
-        return {'status': 'success', 'message': message, 'menu': menu, "columns": coulumns}
+        try:
+            query = "SELECT * FROM {};".format(self.cafeteria_menu)
+            return self.db.execute_query(query)
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
-    def displayRolledOutMenu(self, request_data):
-        query  = "SELECT menu.menu_id,menu.item_id,item.name,item.price,item.category FROM {} menu left join {} item on menu.item_id = item.item_id where lower(menu.menu_category) = %s".format(self.rolledOutMenu,self.cafeteriaMenu)
-        menu = self.db.execute_query(query,params=(request_data['menu_type'].lower(),))
-        message = f"Menu for tomorrow's {request_data['menu_type']} :"
-        coulumns = ["menu_id","item_id","name","price","category"]
-        
-        return {'status': 'success', 'message': message, 'menu': menu, "columns": coulumns}
+    def my_todays_orders(self, user_request):
+        try:
+            query = "SELECT daily_menu.emp_id, food_item.item_id, food_item.name, food_item.description, daily_menu.quantity, daily_menu.bill FROM {} daily_menu LEFT JOIN {} food_item ON daily_menu.item_id = food_item.item_id WHERE daily_menu.emp_id = %s AND daily_menu.menu_date = %s;".format(self.rolled_out_menu, self.cafeteria_menu)
+            todays_orders = self.db.execute_query(query, params=(user_request["emp_id"], datetime.now().strftime("%Y-%m-%d")))
+            columns = ['emp_id', 'item_id', 'name', 'description', 'quantity', 'bill']
+            message = f"Your today's orders are:"
+            return {'status': 'success', 'message': message, 'columns': columns, 'todays_orders': todays_orders}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
-    def my_todays_orders(self,user_data):
-        query  = "SELECT vote.item_id,item.name FROM {} vote left join {} item on vote.item_id = item.item_id where vote.emp_id = {} and vote.vote_date = %s".format(self.vote,self.cafeteriaMenu,user_data['emp_id'])
-        my_orders = self.db.execute_query(query,params=(datetime.now().strftime("%Y-%m-%d"),))
-        message = "your today's orders are:"
-        coulumns = ["item_id","name"]
-        
-        return {'status': 'success', 'message': message, 'orders': my_orders, "columns": coulumns}
+    def display_rolled_out_menu(self, request_data):
+        try:
+            query = "SELECT menu.item_id, item.name,item.price FROM {} menu LEFT JOIN {} item ON item.item_id = menu.item_id WHERE menu.menu_category = %s;".format(self.rolled_out_menu, self.cafeteria_menu)
+            rolled_out_menu = self.db.execute_query(query,params=(request_data['menu_type'],))
+            columns = ['item_id', 'name', 'price']
+            message = f"Items for rolled out menu for {request_data['menu_type']}"
+            return {'status': 'success', 'message': message, 'columns': columns, 'rolled_out_menu': rolled_out_menu}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
     
     def get_notifications(self, emp_id):
-        query = "SELECT * FROM {} WHERE user_id = %s".format(self.notification)
-        notifications = self.db.execute_query(query, params=(emp_id,))
-        columns = ["notification_id", "notification_type", "emp_id", "notification",'item_name']
-        self.clearNotification(emp_id,notifications)
-        return {'status': 'success', 'message': "Your notifications:", 'notification': notifications,"columns": columns}
-    
-    def clearNotification(self,emp,notifications):
-        for notification_id in notifications:
-            query  = 'DELETE FROM {} where notify_type = %s and item_name = %s and user_id = %s'.format(self.notification)
-            self.db.execute_query(query,params=(notification_id[1],notification_id[4],notification_id[2]))
-            
-    def provideFeedback_discardItems(self, feedback):
-        query = "insert into {} (item_name,emp_id,discard_reason,taste_suggestion,recipe_suggestion) values (%s,%s,%s,%s,%s)".format(self.discardItemsFeedback)
-        self.db.execute_query(query,params=(feedback['data']['item_name'],feedback['data']['emp_id'],feedback['1'],feedback['2'],feedback['3']))
-        return {'status': 'success', 'message': "Your feebdback got registered, Thanks you for sharing your feedback."}
+        try:
+            query = "SELECT notification FROM {} WHERE emp_id = %s;".format(self.notification)
+            result = self.db.execute_query(query, params=(emp_id,))
+            return {'status': 'success', 'notifications': result}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
+
+    def provide_feedback_discard_items(self, emp_id):
+        try:
+            query = "SELECT feedback FROM {} WHERE emp_id = %s;".format(self.discard_items_feedback)
+            feedbacks = self.db.execute_query(query, params=(emp_id,))
+            columns = ['feedback']
+            message = "Feedbacks for discarded items."
+            return {'status': 'success', 'message': message, 'columns': columns, 'feedbacks': feedbacks}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}

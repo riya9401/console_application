@@ -5,37 +5,73 @@ class EmployeeService:
         self.employee_repository = EmployeeRepository()
 
     def voteItem(self, food_item_data):
-        # check if food item already exists
-        return self.employee_repository.vote_item(food_item_data)
+        try:
+            return self.employee_repository.vote_item(food_item_data)
+        except Exception as e:
+            return self._error_response(f"Error voting for food item: {e}")
 
     def provideFeedback(self, food_item_data):
-        #check if food item already exists
-        return self.employee_repository.provide_feedback(food_item_data)
+        try:
+            return self.employee_repository.provide_feedback(food_item_data)
+        except Exception as e:
+            return self._error_response(f"Error providing feedback: {e}")
     
     def getRecommendation(self, food_item_data):
-        # Business logic for updating a food item
-        return self.employee_repository.get_recommendation(food_item_data)
+        try:
+            return self.employee_repository.get_recommendation(food_item_data)
+        except Exception as e:
+            return self._error_response(f"Error getting recommendation: {e}")
     
     def view_menu(self):
-        return self.employee_repository.view_all_items()
+        try:
+            return self.employee_repository.view_all_items()
+        except Exception as e:
+            return self._error_response(f"Error viewing menu: {e}")
     
-    def myTodaysOrders(self,user_request):
-        return self.employee_repository.my_todays_orders(user_request)
+    def myTodaysOrders(self, user_request):
+        try:
+            return self.employee_repository.my_todays_orders(user_request)
+        except Exception as e:
+            return self._error_response(f"Error getting today's orders: {e}")
     
-    def displayRolledOutMenu(self,food_item_data):
-        return self.employee_repository.displayRolledOutMenu(food_item_data)
+    def displayRolledOutMenu(self, food_item_data):
+        try:
+            return self.employee_repository.display_rolled_out_menu(food_item_data)
+        except Exception as e:
+            return self._error_response(f"Error displaying rolled-out menu: {e}")
     
     def saveProfile(self, profile_data):
-        return self.employee_repository.save_profile(profile_data)
+        try:
+            return self.employee_repository.save_profile(profile_data)
+        except Exception as e:
+            return self._error_response(f"Error saving profile: {e}")
 
     def getProfile(self, emp_id):
-        return self.employee_repository.get_profile(emp_id)
+        try:
+            return self.employee_repository.get_profile(emp_id)
+        except Exception as e:
+            return self._error_response(f"Error getting profile: {e}")
 
     def getRecommendation_accToPrefrence(self, food_item_data):
-        return self.employee_repository.get_recommendation_with_profile(food_item_data['emp_id'], food_item_data['menu_type'])
+        try:
+            return self.employee_repository.get_recommendation_with_profile(food_item_data['emp_id'], food_item_data['menu_type'])
+        except Exception as e:
+            return self._error_response(f"Error getting recommendation according to preference: {e}")
     
     def getNotifications(self, emp_id):
-        return self.employee_repository.get_notifications(emp_id)
+        try:
+            return self.employee_repository.get_notifications(emp_id)
+        except Exception as e:
+            return self._error_response(f"Error getting notifications: {e}")
     
     def provideFeedback_discardItem(self, emp_id):
-        return self.employee_repository.provideFeedback_discardItems(emp_id)
+        try:
+            return self.employee_repository.provide_feedback_discard_items(emp_id)
+        except Exception as e:
+            return self._error_response(f"Error providing feedback to discard item: {e}")
+
+    def _error_response(self, message):
+        return {
+            'status': 'error',
+            'message': message
+        }

@@ -1,4 +1,3 @@
-import json
 from common.database import Database
 
 class AdminRepository:
