@@ -58,7 +58,7 @@ class EmployeeClient:
 
     def handle_provide_feedback(self):
         emp_order = self.get_my_today_orders()
-        if emp_order <= 0:
+        if emp_order < 0:
             print("Select the item id from the below menu.....")
             self.view_menu()
         self.provide_feedback()
@@ -107,8 +107,8 @@ class EmployeeClient:
         try:
             self.send_request('display_RolledOutMenu', {'menu_type': self.menu_category[menu_type]})
         except Exception as e:
-            print(f"Failed to view rolled-out menu: {str(e)}")
-            return False
+            print(f"Failed to view rolled-out menu for:  {self.menu_category[menu_type]}")
+            return True
 
     def provide_feedback(self):
         try:
@@ -144,7 +144,7 @@ class EmployeeClient:
 
     def get_my_today_orders(self):
         try:
-            self.send_request('my_todays_orders', {'emp_id': self.details['user_id']})
+            return self.send_request('my_todays_orders', {'emp_id': self.details['user_id']})
         except Exception as e:
             print(f"Failed to get today's orders: {str(e)}")
             return 0
@@ -164,10 +164,10 @@ class EmployeeClient:
             menu = pd_df(data=response_data['menu'], columns=response_data['columns'])
             print(f"{response_data['message']}\n {menu.to_string(index=False)}")
         elif action == 'my_todays_orders':
-            if len(response_data['orders']) > 0:
-                menu = pd_df(data=response_data['orders'], columns=response_data['columns'])
+            if len(response_data['todays_orders']) > 0:
+                menu = pd_df(data=response_data['todays_orders'], columns=response_data['columns'])
                 print(f"Dear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
-            return len(response_data['orders'])
+            return len(response_data['todays_orders'])
         elif action == 'get_notifications':
             self.handle_notifications(response_data['notification'])
 

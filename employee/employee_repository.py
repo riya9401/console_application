@@ -111,9 +111,9 @@ class EmployeeRepository:
     
     def my_todays_orders(self, user_request):
         try:
-            query = "SELECT daily_menu.emp_id, food_item.item_id, food_item.name, food_item.description, daily_menu.quantity, daily_menu.bill FROM {} daily_menu LEFT JOIN {} food_item ON daily_menu.item_id = food_item.item_id WHERE daily_menu.emp_id = %s AND daily_menu.menu_date = %s;".format(self.rolled_out_menu, self.cafeteria_menu)
+            query = "SELECT vote.emp_id, food_item.item_id, food_item.name FROM {} vote LEFT JOIN {} food_item ON vote.item_id = food_item.item_id WHERE vote.emp_id = %s AND vote.vote_date = %s;".format(self.vote, self.cafeteria_menu)
             todays_orders = self.db.execute_query(query, params=(user_request["emp_id"], datetime.now().strftime("%Y-%m-%d")))
-            columns = ['emp_id', 'item_id', 'name', 'description', 'quantity', 'bill']
+            columns = ['emp_id', 'item_id', 'name']
             message = f"Your today's orders are:"
             return {'status': 'success', 'message': message, 'columns': columns, 'todays_orders': todays_orders}
         except Exception as e:
@@ -121,11 +121,11 @@ class EmployeeRepository:
     
     def display_rolled_out_menu(self, request_data):
         try:
-            query = "SELECT menu.item_id, item.name,item.price FROM {} menu LEFT JOIN {} item ON item.item_id = menu.item_id WHERE menu.menu_category = %s;".format(self.rolled_out_menu, self.cafeteria_menu)
-            rolled_out_menu = self.db.execute_query(query,params=(request_data['menu_type'],))
+            query = "SELECT menu.item_id, item.name,item.price FROM {} menu LEFT JOIN {} item ON item.item_id = menu.item_id WHERE LOWER(menu.menu_category) = %s;".format(self.rolled_out_menu, self.cafeteria_menu)
+            rolled_out_menu = self.db.execute_query(query,params=(request_data['menu_type'].lower(),))
             columns = ['item_id', 'name', 'price']
             message = f"Items for rolled out menu for {request_data['menu_type']}"
-            return {'status': 'success', 'message': message, 'columns': columns, 'rolled_out_menu': rolled_out_menu}
+            return {'status': 'success', 'message': message, 'columns': columns, 'menu': rolled_out_menu}
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
     
