@@ -7,7 +7,19 @@ from employee_client import EmployeeClient
 def main():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(("localhost", 23327))
-
+    isExit = False
+    while not isExit:
+        choice = int(input("1. Login\n2. Exit\n Enter your choice here: "))
+        if choice == 2:
+            isExit = True
+            continue
+        elif choice == 1:
+            process_login(client_socket)
+        else:
+            print("Invalid choice\n Please try again....")
+        
+        
+def process_login(client_socket):
     auth_client = AuthClient(client_socket)
     is_validUser = auth_client.validate_login()
     if is_validUser['status'] == 'success':

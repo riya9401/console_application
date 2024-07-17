@@ -131,9 +131,10 @@ class EmployeeRepository:
     
     def get_notifications(self, emp_id):
         try:
-            query = "SELECT notification FROM {} WHERE emp_id = %s;".format(self.notification)
+            query = "SELECT notification FROM {} WHERE user_id = %s;".format(self.notification)
             result = self.db.execute_query(query, params=(emp_id,))
-            return {'status': 'success', 'notifications': result}
+            
+            return {'status': 'success', 'message':'Notifications:','notifications': result}
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
 
