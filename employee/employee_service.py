@@ -69,6 +69,12 @@ class EmployeeService:
             return self.employee_repository.provide_feedback_discard_items(emp_id)
         except Exception as e:
             return self._error_response(f"Error providing feedback to discard item: {e}")
+        
+    def clearNotification(self, notification_id):
+        try:
+            return self.employee_repository.clear_notification(notification_id)
+        except Exception as e:
+            return self._error_response(f"Error getting notifications: {e}")
 
     def _error_response(self, message):
         return {

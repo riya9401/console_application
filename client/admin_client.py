@@ -27,12 +27,12 @@ class AddFoodItemCommand(Command):
     def execute(self):
         try:
             name = input("Enter food item name: ")
-            price = input("Enter food item price: ")
-            availability = input("Enter item availability: ")
-            category = input("Enter item category: ")
-            food_type = input("Enter item food type: ")
-            spice_level = input("Enter item spice level: ")
-            preference = input("Enter item preference type: ")
+            price = input("Enter food item price in Rs.: ")
+            availability = input("Enter item availability(Breakfast/Lunch/Dinner): ")
+            category = input("Enter item category(Vegeterian/Non-Vegeterian/eggetarian): ")
+            food_type = input("Enter item food type(Curries/Rice/Fast Food/Desert/Bevereges/Paratha/Dose/Others): ")
+            spice_level = input("Enter item spice level(Low/Medium/High/None): ")
+            preference = input("Enter item preference type(North Indian/south Indian/Others): ")
 
             create_request = {
                 'action': 'add_food_item',

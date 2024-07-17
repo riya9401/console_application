@@ -13,7 +13,8 @@ class EmployeeController:
             'save_profile': self.employee_service.saveProfile,
             'get_profile': self.employee_service.getProfile,
             'get_notifications': self.employee_service.getNotifications,
-            'provideFeedback_discardItem': self.employee_service.provideFeedback_discardItem
+            'provideFeedback_discardItem': self.employee_service.provideFeedback_discardItem,
+            'clear_notification': self.employee_service.clearNotification
         }
 
     def handle_request(self, request):

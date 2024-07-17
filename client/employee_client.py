@@ -169,16 +169,18 @@ class EmployeeClient:
                 print(f"Dear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
             return len(response_data['todays_orders'])
         elif action == 'get_notifications':
-            self.handle_notifications(response_data['notification'])
+            self.handle_notifications(response_data['notifications'])
 
     def handle_notifications(self, notifications):
         if len(notifications) > 0:
             for notification in notifications:
-                print(f"{notification[1]}:\n\t{notification[3]}")
+                print(f"\n{notification[1]}:\n{notification[3]}")
                 if notification[1].lower() == 'feedback_required':
-                    feedback = self.get_feedback(notification[1])
-                    feedback['data'] = {'emp_id': notification[2], 'item_name': notification[4]}
-                    self.provide_feedback_discard_item(feedback)
+                    if input("Would you like to provide feedback(yes/no): ").lower() in ["yes","y"]:
+                        feedback = self.get_feedback('feedback_required')
+                        feedback['data'] = {'emp_id': notification[2], 'item_name': notification[4]}
+                        self.provide_feedback_discard_item(feedback)
+                self.clear_notification(notification[0])
         else:
             print("No new notification found.")
 
@@ -191,7 +193,7 @@ class EmployeeClient:
                 3: "Share your mom’s recipe."
             }
             for ques_num in questions:
-                feedback[f'{ques_num}'] = input(f"\t{questions[ques_num]}\n\t")
+                feedback[f'{ques_num}'] = input(f"{questions[ques_num]}\n")
         return feedback
 
     def provide_feedback_discard_item(self, feedback):
@@ -200,6 +202,12 @@ class EmployeeClient:
             self.send_request('provideFeedback_discardItem', feedback)
         except Exception as e:
             print(f"Failed to provide feedback for discarded item: {str(e)}")
+            
+    def clear_notification(self,notification_id):
+        try:
+            self.send_request('clear_notification', notification_id)
+        except Exception as e:
+            print(f"Failed to clear notification where notification id is {notification_id} due to: {str(e)}")
 
     def get_response(self):
         response = b''

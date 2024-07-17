@@ -131,19 +131,27 @@ class EmployeeRepository:
     
     def get_notifications(self, emp_id):
         try:
-            query = "SELECT notification FROM {} WHERE user_id = %s;".format(self.notification)
+            query = "SELECT * FROM {} WHERE user_id = %s;".format(self.notification)
             result = self.db.execute_query(query, params=(emp_id,))
             
             return {'status': 'success', 'message':'Notifications:','notifications': result}
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
-
-    def provide_feedback_discard_items(self, emp_id):
+        
+    def clear_notification(self, notification_id):
         try:
-            query = "SELECT feedback FROM {} WHERE emp_id = %s;".format(self.discard_items_feedback)
-            feedbacks = self.db.execute_query(query, params=(emp_id,))
-            columns = ['feedback']
-            message = "Feedbacks for discarded items."
-            return {'status': 'success', 'message': message, 'columns': columns, 'feedbacks': feedbacks}
+            query = "DELETE FROM {} WHERE notify_id = %s".format(self.notification)
+            self.db.execute_query(query, params=(notification_id,))
+            message = f"Cleared all notifications."
+            return {'status': 'success', 'message': message}
+        except Exception as e:
+            return {'status': 'failure', 'message': str(e)}
+
+    def provide_feedback_discard_items(self, feedback):
+        try:
+            query = "INSERT INTO {} (item_name, emp_id, discard_reason, taste_suggestion, recipe_suggestion) values (%s,%s,%s,%s,%s);".format(self.discard_items_feedback)
+            self.db.execute_query(query, params=(feedback['data']['item_name'],feedback['data']['emp_id'],feedback['1'],feedback['2'],feedback['3']))
+            message = f"Feedback provided successfully for {feedback['data']['item_name']}."
+            return {'status': 'success', 'message': message}
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
