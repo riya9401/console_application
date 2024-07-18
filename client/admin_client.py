@@ -134,8 +134,7 @@ class ViewDiscardListCommand(Command):
                 print("\nDiscard Menu Item List:")
                 print(discard_list.to_string(index=False))
                 print("\nOptions:")
-                print("1. Remove the Food Item from Menu List")
-                print("2. Get Detailed Feedback")
+                print("1. Remove the Food Item from Menu List\n2. Get Detailed Feedback\n3. Back")
                 choice = input("Enter choice: ")
                 if choice == '1':
                     item_name = input("Enter the food item name to remove: ")
@@ -149,6 +148,8 @@ class ViewDiscardListCommand(Command):
                         'action': 'review_discard_list',
                         'data': {'action': 'get_feedback', 'item_name': item_name}
                     }
+                elif choice == '3':
+                    return
                 else:
                     print("Invalid choice.")
                     return

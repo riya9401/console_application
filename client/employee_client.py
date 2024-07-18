@@ -51,15 +51,20 @@ class EmployeeClient:
 
     def handle_vote_for_food(self):
         isExit = False
-        while not isExit:
+        while True:
             isExit = self.view_rolled_out_menu()
-            if not isExit:
+            if isExit:
+                break
+            elif isExit is not None:
                 self.vote_for_food_item()
+            print()
+            
 
     def handle_provide_feedback(self):
         emp_order = self.get_my_today_orders()
-        if emp_order < 0:
-            print("Select the item id from the below menu.....")
+        if emp_order < 1:
+            print("Ups, You haven't voted for today.\n")
+            print("Please enter the item id from the below menu that you ordered manually.....")
             self.view_menu()
         self.provide_feedback()
 
@@ -105,7 +110,7 @@ class EmployeeClient:
         if menu_type == len(self.menu_category)+1:
             return True
         try:
-            self.send_request('display_RolledOutMenu', {'menu_type': self.menu_category[menu_type]})
+            return self.send_request('display_RolledOutMenu', {'menu_type': self.menu_category[menu_type]})
         except Exception as e:
             print(f"Failed to view rolled-out menu for:  {self.menu_category[menu_type]}")
             return True
@@ -161,8 +166,17 @@ class EmployeeClient:
         response_data = self.get_response()
         print(response_data['message'])
         if action == 'view_menu' or action == 'display_RolledOutMenu' or action == 'get_recommendation_employee':
-            menu = pd_df(data=response_data['menu'], columns=response_data['columns'])
-            print(f"{response_data['message']}\n {menu.to_string(index=False)}")
+            if len(response_data['menu'])>0:
+                menu = pd_df(data=response_data['menu'], columns=response_data['columns'])
+                print(f"{menu.to_string(index=False)}")
+            else:
+                if action == 'view_menu':
+                    print(f"Menu not for {data['menu_type']} category.")
+                elif action == 'display_RolledOutMenu':
+                    print(f"Menu is not rolled out for tomorrow's {data['menu_type']} menu.")
+                elif action == 'get_recommendation_employee':
+                    print(f"Recommendation not found for {data['menu_type']}")
+                return
         elif action == 'my_todays_orders':
             if len(response_data['todays_orders']) > 0:
                 menu = pd_df(data=response_data['todays_orders'], columns=response_data['columns'])
@@ -170,6 +184,7 @@ class EmployeeClient:
             return len(response_data['todays_orders'])
         elif action == 'get_notifications':
             self.handle_notifications(response_data['notifications'])
+        return False
 
     def handle_notifications(self, notifications):
         if len(notifications) > 0:

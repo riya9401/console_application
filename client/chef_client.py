@@ -31,41 +31,50 @@ class ChefClient:
                 return 'logOut'
 
     def get_recommendations(self):
-        for category in self.menu_category:  
-            print(f"{category}. {self.menu_category[category]}") 
-        choice = int(input("Please enter your menu category here: "))
-        max_item = int(input("Enter number of items in recommendate menu: "))
-        request = {
-            'action': 'get_recommendations',
-            'data': {
-                'menu_category': self.menu_category[choice],
-                'max_items': max_item
-            }
-            }
-        self.client_socket.sendall(json.dumps(request).encode())
-        response_data = self.getResponse()
-        menu = pd_df(data=response_data['recommendation'],columns=["item_id","name","rating","category"])
-        print(f"{response_data['message']}\n {menu.to_string(index=False)}")
-        
+        while True:
+            for category in self.menu_category:  
+                print(f"{category}. {self.menu_category[category]}") 
+            print(f"{len(self.menu_category)+1}. Back to action menu")
+            choice = int(input("Please enter your menu category here: "))
+            if choice == len(self.menu_category)+1:
+                return True
+            max_item = int(input("Enter number of items in recommendate menu: "))
+            request = {
+                'action': 'get_recommendations',
+                'data': {
+                    'menu_category': self.menu_category[choice],
+                    'max_items': max_item
+                }
+                }
+            self.client_socket.sendall(json.dumps(request).encode())
+            response_data = self.getResponse()
+            menu = pd_df(data=response_data['recommendation'],columns=["item_id","name","rating","category"])
+            print(f"{response_data['message']}\n {menu.to_string(index=False)}")
+            
 
     def rollout_menu(self):
-        for category in self.menu_category:  
-            print(f"{category}. {self.menu_category[category]}") 
-        menuType = self.menu_category[int(input("select menu type from the above list: "))]
-        items = []
-        action = 'y'
-        while action != 'n':
-            items.append(int(input("Enter item ID to rollout: ")))
-            action = input("Do you want to select more item? (y/n): ").lower()
-        rollout_request = {
-            'action': 'rollout_menu',
-            'data': {
-                'menu_type': menuType,
-                'item': items}
-        }
-        self.client_socket.sendall(json.dumps(rollout_request).encode())
-        response_data = self.getResponse()
-        print(response_data['message'])
+        while True:
+            for category in self.menu_category:  
+                print(f"{category}. {self.menu_category[category]}") 
+            print(f"{len(self.menu_category)+1}. Back to action menu")
+            choice = int(input("select menu type from the above list: "))
+            if choice == len(self.menu_category)+1:
+                return True
+            menuType = self.menu_category[choice]
+            items = []
+            action = 'y'
+            while action != 'n':
+                items.append(int(input("Enter item ID to rollout: ")))
+                action = input("Do you want to select more item? (y/n): ").lower()
+            rollout_request = {
+                'action': 'rollout_menu',
+                'data': {
+                    'menu_type': menuType,
+                    'item': items}
+            }
+            self.client_socket.sendall(json.dumps(rollout_request).encode())
+            response_data = self.getResponse()
+            print(response_data['message'])
 
     def getMonthlyFbReport(self):
         while True:

@@ -50,7 +50,10 @@ class EmployeeRepository:
             query = "INSERT INTO {} (item_id, emp_id, vote_date) VALUES (%s, %s, %s)".format(self.vote)
             next_day = datetime.now() + timedelta(days=1)
             self.db.execute_query(query, params=(request_data['item_id'], request_data['emp_id'], next_day.strftime("%Y-%m-%d")))
-            message = f"Voting for {request_data['item_id']} done successfully"
+            
+            query = "SELECT name FROM {} WHERE item_id = %s".format(self.cafeteria_menu)
+            item_name = self.db.execute_query(query,params=(request_data['item_id'],))
+            message = f"Voting for {item_name[0][0]} done successfully"
             return {'status': 'success', 'message': message}
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
@@ -59,7 +62,10 @@ class EmployeeRepository:
         try:
             query = "INSERT INTO {} (emp_id, item_id, rating, comment, sentiment, fb_date) VALUES (%s, %s, %s, %s, %s, %s)".format(self.feedback)
             self.db.execute_query(query, params=(request_data["emp_id"], request_data["item_id"], request_data["rating"], request_data["feedback"], request_data["sentiment_score"], datetime.now().strftime("%Y-%m-%d")))
-            message = f"Feedback provided for item_id: {request_data['item_id']} by employee_id: {request_data['emp_id']}."
+            
+            query = "SELECT name FROM {} WHERE item_id = %s".format(self.cafeteria_menu)
+            item_name = self.db.execute_query(query, params=(request_data["item_id"],))
+            message = f"Feedback provided successfully for {item_name[0][0]}."
             return {'status': 'success', 'message': message}
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
@@ -77,24 +83,24 @@ class EmployeeRepository:
     def get_recommendation_with_profile(self, emp_id, menu_type):
         try:
             profile = self.get_profile(emp_id)
-            query = "SELECT item.item_id, item.name, item_d.foodType, item_d.spiceLevel, item_d.preferenceType, CAST(score.average_rating AS CHAR), CAST(score.average_sentiment AS CHAR) FROM {} item LEFT JOIN {} score ON item.item_id = score.item_id LEFT JOIN {} item_d ON item.item_id = item_d.item_id WHERE LOWER(item.availability) IN (%s, 'all') ORDER BY score.average_rating DESC, score.average_sentiment DESC".format(self.cafeteria_menu, self.scoring, self.item_description)
+            query = "SELECT item.item_id, item.name, item_d.foodType, item_d.spiceLevel, item_d.prefrenceType, CAST(score.average_rating AS CHAR), CAST(score.average_sentiment AS CHAR) FROM {} item LEFT JOIN {} score ON item.item_id = score.item_id LEFT JOIN {} item_d ON item.item_id = item_d.item_id WHERE LOWER(item.availability) IN (%s, 'all') ORDER BY score.average_rating DESC, score.average_sentiment DESC".format(self.cafeteria_menu, self.scoring, self.item_description)
             recommendations = self.db.execute_query(query, params=(menu_type.lower(),))
             if profile:
                 recommendations = self._filter_recommendations_based_on_profile(recommendations, profile)
             columns = ['item_id', 'name', 'food_type', 'spice_level', 'preference', 'rating', 'score']
             message = f"Here are the recommendations for {menu_type}"
-            return {'status': 'success', 'message': message, 'columns': columns, 'recommendations': recommendations}
+            return {'status': 'success', 'message': message, 'columns': columns, 'menu': recommendations}
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
     
     def _filter_recommendations_based_on_profile(self, recommendations, profile):
         def get_preference_score(item, profile):
             score = 0
-            if profile[0]['food_type'] == item[2]:
-                score += 3
-            if profile[0]['spice_level'] == item[3]:
+            if profile[0][2] == item[2]:        #veg/Non-veg/egg
+                score += 5
+            if profile[0][3] == item[3]:        #spice Level
                 score += 2
-            if profile[0]['preference'] == item[4]:
+            if profile[0][4] == item[4]:        #preference_type
                 score += 1
             return score
 
