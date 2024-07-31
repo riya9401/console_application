@@ -1,5 +1,6 @@
 from common.database import Database
 import string
+from datetime import datetime
 
 class ChefRepository:
     def __init__(self):
@@ -17,10 +18,13 @@ class ChefRepository:
         return {'status': 'success', 'message': message, 'recommendation': rcmd_menu}
 
     def rollOutMenu(self, request_data):
-        self.clearRecords(self.daily_menu)
+        query = "select distinct menu_date from {}".format(self.daily_menu)
+        result = self.db.execute_query(query)
+        if str(result[0][0])!=str(datetime.now().strftime("%Y-%m-%d")):
+            self.clearRecords(self.daily_menu)
         for item in request_data['item']:
-            query = "insert into {} (item_id, menu_category) values (%s,%s)".format(self.daily_menu)
-            result = self.db.execute_query(query,params=(item,request_data['menu_type'].lower()))
+            query = "insert into {} (item_id, menu_category, menu_date) values (%s,%s,%s)".format(self.daily_menu)
+            result = self.db.execute_query(query,params=(item,request_data['menu_type'].lower(),datetime.now().strftime("%Y-%m-%d")))
         message = f"{request_data['menu_type']} Menu is rolled out."
         return {'status': 'success', 'message': message, 'category': request_data['menu_type']}
     
@@ -40,12 +44,12 @@ class ChefRepository:
         return {'status': 'success', 'message': message, 'menu': menu, "columns": columns}
     
     def getMonthlyFbReport(self,request_data):
-        query = "SELECT DATE_FORMAT(fb.fb_date, '%Y-%m') AS month,item.item_id,item.name,AVG(fb.rating) AS average_rating FROM {} fb JOIN {} item ON item.item_id = fb.item_id WHERE DATE_FORMAT(fb.fb_date, '%Y-%m') = '{}-{}' GROUP By DATE_FORMAT(fb.fb_date, '%Y-%m'), item.item_id, fb.rating -- Include fb.rating in GROUP BY ORDER BY fb.rating DESC;".format(self.feedback,self.source_menu_table,request_data['year'],request_data['month'])
+        query = "SELECT DATE_FORMAT(fb.fb_date, '%Y-%m') AS month,item.item_id,item.name,CAST(ROUND(AVG(fb.rating), 2) AS CHAR) AS average_rating FROM {} fb JOIN {} item ON item.item_id = fb.item_id WHERE DATE_FORMAT(fb.fb_date, '%Y-%m') = '{}-{}' GROUP By DATE_FORMAT(fb.fb_date, '%Y-%m'), item.item_id, fb.rating -- Include fb.rating in GROUP BY ORDER BY fb.rating DESC;".format(self.feedback,self.source_menu_table,request_data['year'],request_data['month'])
         result = self.db.execute_query(query)
         print(f"monthly report is generated for {request_data['month']}.")
         columns = ['year-month', 'item_id', 'item_name' ,'average_rating']
         message = f" monthly report for {request_data['month']}"
-        return {'status': 'success', 'message': message, "columns": columns}
+        return {'status': 'success', 'message': message, "columns": columns, "data": result}
 
     def clearRecords(self,table_name):
         query  = 'truncate table {}'.format(table_name)

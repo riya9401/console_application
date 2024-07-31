@@ -45,9 +45,9 @@ class EmployeeClient:
                 elif choice == '7':
                     return 'logOut'
                 else:
-                    print(f"Invalid choice, try again...")
+                    print(f"\nInvalid choice, try again...")
             except Exception as e:
-                print(f"An error occurred: {str(e)}")
+                print(f"\nAn error occurred: {str(e)}")
 
     def handle_vote_for_food(self):
         isExit = False
@@ -63,8 +63,8 @@ class EmployeeClient:
     def handle_provide_feedback(self):
         emp_order = self.get_my_today_orders()
         if emp_order < 1:
-            print("Ups, You haven't voted for today.\n")
-            print("Please enter the item id from the below menu that you ordered manually.....")
+            print("\nUps, You haven't voted for today.\n")
+            print("\nPlease enter the item id from the below menu that you ordered manually.....")
             self.view_menu()
         self.provide_feedback()
 
@@ -73,10 +73,10 @@ class EmployeeClient:
             profile_data = self.collect_profile_data()
             self.send_request('save_profile', profile_data)
         except Exception as e:
-            print(f"Failed to update profile: {str(e)}")
+            print(f"\nFailed to update profile: {str(e)}")
 
     def collect_profile_data(self):
-        print("Please answer these questions to update your profile:")
+        print("\nPlease answer these questions to update your profile:")
         food_type = input("1) Please select one - Vegetarian, Non-Vegetarian, Eggetarian: ")
         spice_level = input("2) Please select your spice level - High, Medium, Low: ")
         preference = input("3) What do you prefer most? - North Indian, South Indian, Other: ")
@@ -91,28 +91,28 @@ class EmployeeClient:
 
     def vote_for_food_item(self):
         try:
-            menu_id = int(input("Enter food ID to vote for: "))
+            menu_id = int(input("\nEnter food ID to vote for: "))
             self.send_request('vote_for_food_item', {'item_id': menu_id, 'emp_id': self.details['user_id']})
         except Exception as e:
-            print(f"Failed to vote for food item: {str(e)}")
+            print(f"\nFailed to vote for food item: {str(e)}")
 
     def view_menu(self):
         try:
             self.send_request('view_menu', {})
         except Exception as e:
-            print(f"Failed to view menu: {str(e)}")
+            print(f"\nFailed to view menu: {str(e)}")
 
     def view_rolled_out_menu(self):
         for category in self.menu_category:
             print(f"{category}. {self.menu_category[category]}")
         print(f"{len(self.menu_category)+1}. Back to action menu")
-        menu_type = int(input("Enter your choice: "))
+        menu_type = int(input("\nEnter your choice: "))
         if menu_type == len(self.menu_category)+1:
             return True
         try:
             return self.send_request('display_RolledOutMenu', {'menu_type': self.menu_category[menu_type]})
         except Exception as e:
-            print(f"Failed to view rolled-out menu for:  {self.menu_category[menu_type]}")
+            print(f"\nFailed to view rolled-out menu for:  {self.menu_category[menu_type]}")
             return True
 
     def provide_feedback(self):
@@ -127,10 +127,10 @@ class EmployeeClient:
             }
             self.send_request('provide_feedback', feedback_data)
         except Exception as e:
-            print(f"Failed to provide feedback: {str(e)}")
+            print(f"\nFailed to provide feedback: {str(e)}")
 
     def collect_feedback_data(self):
-        item_id = int(input("Enter food item ID to provide feedback for: "))
+        item_id = int(input("\nEnter food item ID to provide feedback for: "))
         rate = float(input("How much you rate this item: "))
         while rate < 0.0 or rate > 6.0:
             rate = float(input("How much you rate this item: "))
@@ -142,23 +142,23 @@ class EmployeeClient:
         try:
             for category in self.menu_category:
                 print(f"{category}. {self.menu_category[category]}")
-            menu_type = int(input("Please enter your menu category here: "))
+            menu_type = int(input("\nPlease enter your menu category here: "))
             self.send_request('get_recommendation_employee', {'menu_type': self.menu_category[menu_type], 'emp_id': self.details['user_id']})
         except Exception as e:
-            print(f"Failed to view recommendations: {str(e)}")
+            print(f"\nFailed to view recommendations: {str(e)}")
 
     def get_my_today_orders(self):
         try:
             return self.send_request('my_todays_orders', {'emp_id': self.details['user_id']})
         except Exception as e:
-            print(f"Failed to get today's orders: {str(e)}")
+            print(f"\nFailed to get today's orders: {str(e)}")
             return 0
 
     def display_notifications(self):
         try:
             self.send_request('get_notifications', {'emp_id': self.details['user_id']})
         except Exception as e:
-            print(f"Failed to display notifications: {str(e)}")
+            print(f"\nFailed to display notifications: {str(e)}")
 
     def send_request(self, action, data):
         request = {'action': action, 'data': data}
@@ -171,16 +171,16 @@ class EmployeeClient:
                 print(f"{menu.to_string(index=False)}")
             else:
                 if action == 'view_menu':
-                    print(f"Menu not for {data['menu_type']} category.")
+                    print(f"\nMenu not for {data['menu_type']} category.")
                 elif action == 'display_RolledOutMenu':
-                    print(f"Menu is not rolled out for tomorrow's {data['menu_type']} menu.")
+                    print(f"\nMenu is not rolled out for tomorrow's {data['menu_type']} menu.")
                 elif action == 'get_recommendation_employee':
-                    print(f"Recommendation not found for {data['menu_type']}")
+                    print(f"\nRecommendation not found for {data['menu_type']}")
                 return
         elif action == 'my_todays_orders':
             if len(response_data['todays_orders']) > 0:
                 menu = pd_df(data=response_data['todays_orders'], columns=response_data['columns'])
-                print(f"Dear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
+                print(f"\nDear {self.details['name']}, {response_data['message']}\n {menu.to_string(index=False)}")
             return len(response_data['todays_orders'])
         elif action == 'get_notifications':
             self.handle_notifications(response_data['notifications'])
@@ -188,6 +188,10 @@ class EmployeeClient:
 
     def handle_notifications(self, notifications):
         if len(notifications) > 0:
+            print("-"*50)
+            print("\t"*2,end="")
+            print("NOTIFICATIONS")
+            print("-"*50)
             for notification in notifications:
                 print(f"\n{notification[1]}:\n{notification[3]}")
                 if notification[1].lower() == 'feedback_required':
@@ -197,7 +201,7 @@ class EmployeeClient:
                         self.provide_feedback_discard_item(feedback)
                 self.clear_notification(notification[0])
         else:
-            print("No new notification found.")
+            print("\nNo new notification found.")
 
     def get_feedback(self, feedback_type):
         feedback = {}
@@ -216,13 +220,13 @@ class EmployeeClient:
             feedback['emp_id'] = self.details['user_id']
             self.send_request('provideFeedback_discardItem', feedback)
         except Exception as e:
-            print(f"Failed to provide feedback for discarded item: {str(e)}")
+            print(f"\nFailed to provide feedback for discarded item: {str(e)}")
             
     def clear_notification(self,notification_id):
         try:
             self.send_request('clear_notification', notification_id)
         except Exception as e:
-            print(f"Failed to clear notification where notification id is {notification_id} due to: {str(e)}")
+            print(f"\nFailed to clear notification where notification id is {notification_id} due to: {str(e)}")
 
     def get_response(self):
         response = b''
@@ -237,5 +241,5 @@ class EmployeeClient:
             response_data = json.loads(response.decode())
             return response_data
         except Exception as e:
-            print(f"Failed to get response: {str(e)}")
+            print(f"\nFailed to get response: {str(e)}")
             return {}

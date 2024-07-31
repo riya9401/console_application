@@ -26,13 +26,13 @@ class AddFoodItemCommand(Command):
 
     def execute(self):
         try:
-            name = input("Enter food item name: ")
+            name = input("\nEnter food item name: ")
             price = input("Enter food item price in Rs.: ")
-            availability = input("Enter item availability(Breakfast/Lunch/Dinner): ")
-            category = input("Enter item category(Vegeterian/Non-Vegeterian/eggetarian): ")
-            food_type = input("Enter item food type(Curries/Rice/Fast Food/Desert/Bevereges/Paratha/Dose/Others): ")
-            spice_level = input("Enter item spice level(Low/Medium/High/None): ")
-            preference = input("Enter item preference type(North Indian/south Indian/Others): ")
+            availability = input("Enter item availability(Breakfast/ Lunch/ Dinner): ")
+            category = input("Enter item category(Vegeterian/ Non-Vegeterian/ eggetarian): ")
+            food_type = input("Enter item food type(Curries/ Rice/ Fast Food/ Desert/ Bevereges/ Paratha/ Dose/ Others): ")
+            spice_level = input("Enter item spice level(Low/ Medium/ High/ None): ")
+            preference = input("Enter item preference type(North Indian/ south Indian/ Others): ")
 
             create_request = {
                 'action': 'add_food_item',
@@ -48,9 +48,9 @@ class AddFoodItemCommand(Command):
             }
             self.client_socket.sendall(json.dumps(create_request).encode())
             response_data = self.getResponse()
-            print(response_data['message'])
+            print(f"\n{response_data['message']}")
         except Exception as e:
-            print(f"Error adding food item: {e}")
+            print(f"\nError adding food item: {e}")
 
 class UpdateFoodItemCommand(Command):
     def __init__(self, client_socket):
@@ -69,11 +69,11 @@ class UpdateFoodItemCommand(Command):
             while True:
                 for property in item:
                     print(f"{property}. {item[property]}")
-                field = int(input("Choose the option needed to be updated: "))
+                field = int(input("\nChoose the option needed to be updated: "))
                 if field in range(1, 8):
                     break
                 else:
-                    print("Invalid property, please choose property to be changed from the below menu....")
+                    print("\nInvalid property, please choose property to be changed from the below menu....")
             update_request = {
                 'action': 'update_food_item',
                 'data': {
@@ -84,9 +84,9 @@ class UpdateFoodItemCommand(Command):
             }
             self.client_socket.sendall(json.dumps(update_request).encode())
             response_data = self.getResponse()
-            print(response_data['message'])
+            print(f"\n{response_data['message']}")
         except Exception as e:
-            print(f"Error updating food item: {e}")
+            print(f"\nError updating food item: {e}")
 
 class RemoveFoodItemCommand(Command):
     def __init__(self, client_socket):
@@ -94,16 +94,16 @@ class RemoveFoodItemCommand(Command):
 
     def execute(self):
         try:
-            item_id = int(input("Enter food item ID: "))
+            item_id = int(input("\nEnter food item ID: "))
             remove_request = {
                 'action': 'remove_food_item',
                 'data': {'id': item_id}
             }
             self.client_socket.sendall(json.dumps(remove_request).encode())
             response_data = self.getResponse()
-            print(response_data['message'])
+            print(f"\n{response_data['message']}")
         except Exception as e:
-            print(f"Error removing food item: {e}")
+            print(f"\nError removing food item: {e}")
 
 class ViewMenuCommand(Command):
     def __init__(self, client_socket):
@@ -114,11 +114,11 @@ class ViewMenuCommand(Command):
             display_request = {'action': 'view_menu','data':{}}
             self.client_socket.sendall(json.dumps(display_request).encode())
             response_data = self.getResponse()
-            print(response_data['message'])
+            print(f"\n{response_data['message']}")
             menu = pd_df(data=response_data['menu'], columns=response_data['columns'])
             print(menu.to_string(index=False))
         except Exception as e:
-            print(f"Error viewing menu: {e}")
+            print(f"\nError viewing menu: {e}")
 
 class ViewDiscardListCommand(Command):
     def __init__(self, client_socket):
@@ -135,15 +135,15 @@ class ViewDiscardListCommand(Command):
                 print(discard_list.to_string(index=False))
                 print("\nOptions:")
                 print("1. Remove the Food Item from Menu List\n2. Get Detailed Feedback\n3. Back")
-                choice = input("Enter choice: ")
+                choice = input("\nEnter choice: ")
                 if choice == '1':
-                    item_name = input("Enter the food item name to remove: ")
+                    item_name = input("\nEnter the food item name to remove: ")
                     review_request = {
                         'action': 'review_discard_list',
                         'data': {'action': 'remove', 'item_name': item_name}
                     }
                 elif choice == '2':
-                    item_name = input("Enter the food item name to get feedback: ")
+                    item_name = input("\nEnter the food item name to get feedback: ")
                     review_request = {
                         'action': 'review_discard_list',
                         'data': {'action': 'get_feedback', 'item_name': item_name}
@@ -151,7 +151,7 @@ class ViewDiscardListCommand(Command):
                 elif choice == '3':
                     return
                 else:
-                    print("Invalid choice.")
+                    print("\nInvalid choice.")
                     return
                 self.client_socket.sendall(json.dumps(review_request).encode())
                 response_data = self.getResponse()
@@ -186,18 +186,21 @@ class AdminClient:
     def handle_admin_actions(self):
         while True:
             try:
-                print("\nAdmin Action List:")
+                print("-"*50)
+                print("\t"*2,end="")
+                print("Hello Admin")
+                print("-"*50)
                 for task in self.actions:
                     print(f"{task}. {self.actions[task]}")
-                choice = int(input("Enter choice: "))
+                choice = int(input("\nEnter choice: "))
                 if choice in self.commands:
                     self.commands[choice].execute()
                 elif choice == 6:
                     return 'logOut'
                 else:
-                    print("Invalid choice.")
+                    print("\nInvalid choice.")
             except Exception as e:
-                print(f"Error handling admin actions: {e}")
+                print(f"\nError handling admin actions: {e}")
 
 # Main function for testing (not part of the AdminClient class)
 def main():
@@ -207,7 +210,7 @@ def main():
         admin_client = AdminClient(client_socket)
         admin_client.handle_admin_actions()
     except Exception as e:
-        print(f"Main function error: {e}")
+        print(f"\nMain function error: {e}")
     finally:
         client_socket.close()
 

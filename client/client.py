@@ -16,7 +16,7 @@ def main():
         elif choice == 1:
             process_login(client_socket)
         else:
-            print("Invalid choice\n Please try again....")
+            print("\nInvalid choice\n Please try again....")
         
         
 def process_login(client_socket):
@@ -24,7 +24,7 @@ def process_login(client_socket):
     is_validUser = auth_client.validate_login()
     if is_validUser['status'] == 'success':
         authenticate_status = auth_client.authenticate_user(is_validUser['user'][0][0])
-        print(f"{authenticate_status['role']} {authenticate_status['message']}")
+        print(f"{authenticate_status['role']} {authenticate_status['message']}\n")
         user = {
             'user_id': is_validUser['user'][0][0],
             'name': is_validUser['user'][0][1],

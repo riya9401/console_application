@@ -20,16 +20,16 @@ class AdminRepository:
     
     def _add_item(self, food_item_data):
         query = f"INSERT INTO {self.table_name} (name, price, availability, category) VALUES (%s, %s, %s, %s)"
-        self.db.execute_query(query, params=(food_item_data['name'], food_item_data['price'], food_item_data['availability'], food_item_data['category']))
+        self.db.execute_query(query, params=(food_item_data['name'], food_item_data['price'], food_item_data['availability'], food_item_data['food_type']))
         
     def _get_item_id(self, food_item_data):
         query = f"SELECT item_id FROM {self.table_name} WHERE name = %s AND price = %s AND availability= %s AND category=%s"
-        result = self.db.execute_query(query, params=(food_item_data['name'], food_item_data['price'], food_item_data['availability'], food_item_data['category']))
+        result = self.db.execute_query(query, params=(food_item_data['name'], food_item_data['price'], food_item_data['availability'], food_item_data['food_type']))
         return result[0][0]
     
     def _add_item_description(self, description, item_id):
         query = f"INSERT INTO {self.itemDescription} (item_id, foodType, spiceLevel, prefrenceType) VALUES (%s, %s, %s, %s)"
-        self.db.execute_query(query, params=(item_id, description['food_type'], description['spice_level'], description['preference']))
+        self.db.execute_query(query, params=(item_id, description['category'], description['spice_level'], description['preference']))
 
     def update(self, food_item_data):
         try:

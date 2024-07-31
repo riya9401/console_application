@@ -5,7 +5,7 @@ class AuthClient:
         self.client_socket = client_socket
 
     def validate_login(self):
-        user_id = input("Enter your User ID: ")
+        user_id = input("\nEnter your User ID: ")
         username = input("Enter username: ")
         login_request = {
             "action": "validate_user",
@@ -19,7 +19,7 @@ class AuthClient:
             response_data = self.getResponse()
             return response_data
         except Exception as e:
-            print(f"Error during login: {e}")
+            print(f"\nError during login: {e}")
             return None
         
     def authenticate_user(self,id):
@@ -27,7 +27,7 @@ class AuthClient:
             "action": "auth_user",
             "data": {
                 "userId": id,
-                "password": input("Enter your password: "),
+                "password": input("\nEnter your password: "),
             }
         }
         try:
@@ -35,7 +35,7 @@ class AuthClient:
             response_data = self.getResponse()
             return response_data
         except Exception as e:
-            print(f"Error during login: {e}")
+            print(f"\nError during login: {e}")
             return None
         
     def logout(self):

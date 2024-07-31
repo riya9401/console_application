@@ -17,10 +17,13 @@ class ChefClient:
 
     def handle_chef_actions(self):
         while True:
-            print(f"\nHello Chef... ")  
+            print("-"*50)
+            print("\t"*2,end="")
+            print(f"Hello Chef... ")  
+            print("-"*50)
             for task in self.action:  
                 print(f"{task}. {self.action[task]}") 
-            choice = input("Please Enter your choice here: ")
+            choice = input("\nPlease Enter your choice here: ")
             if choice == '1':
                 self.get_recommendations()
             elif choice == '2':
@@ -35,7 +38,7 @@ class ChefClient:
             for category in self.menu_category:  
                 print(f"{category}. {self.menu_category[category]}") 
             print(f"{len(self.menu_category)+1}. Back to action menu")
-            choice = int(input("Please enter your menu category here: "))
+            choice = int(input("\nPlease enter your menu category here: "))
             if choice == len(self.menu_category)+1:
                 return True
             max_item = int(input("Enter number of items in recommendate menu: "))
@@ -57,14 +60,14 @@ class ChefClient:
             for category in self.menu_category:  
                 print(f"{category}. {self.menu_category[category]}") 
             print(f"{len(self.menu_category)+1}. Back to action menu")
-            choice = int(input("select menu type from the above list: "))
+            choice = int(input("\nselect menu type from the above list: "))
             if choice == len(self.menu_category)+1:
                 return True
             menuType = self.menu_category[choice]
             items = []
             action = 'y'
             while action != 'n':
-                items.append(int(input("Enter item ID to rollout: ")))
+                items.append(int(input("\nEnter item ID to rollout: ")))
                 action = input("Do you want to select more item? (y/n): ").lower()
             rollout_request = {
                 'action': 'rollout_menu',
@@ -78,10 +81,10 @@ class ChefClient:
 
     def getMonthlyFbReport(self):
         while True:
-            month = input("Enter month(number between 01 to 12): ")
+            month = input("\nEnter month(number between 01 to 12): ")
             if month.isdigit() and 1 <= int(month) <= 12:
                 break
-            print("invalid value for month")
+            print("\ninvalid value for month")
         monthlyReport_request = {
             'action': 'view_monthly_report',
             'year': datetime.now().year,
@@ -89,7 +92,10 @@ class ChefClient:
         }
         self.client_socket.sendall(json.dumps(monthlyReport_request).encode())
         response_data = self.getResponse()
-        print(response_data['message'])
+        
+        report = pd_df(data=response_data['data'],columns=response_data["columns"])
+        print(f"{response_data['message']}\n {report.to_string(index=False)}")
+            
         
     def getResponse(self):
         response = b''
