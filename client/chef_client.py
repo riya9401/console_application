@@ -98,14 +98,23 @@ class ChefClient:
             
         
     def getResponse(self):
-        response = b''
-        response_size = json.loads(self.client_socket.recv(1024).decode())
-        while response_size:
+        response = self.client_socket.recv(1024).decode()
+        
+        # Check if the response is empty or invalid
+        if not response:
+            raise ValueError("No data received from the server.")
+        
+        try:
+            response_size = json.loads(response)
+        except json.JSONDecodeError:
+            raise ValueError("Received invalid JSON data from the server.")
+        
+        response_data = b''
+        while response_size > 0:
             chunk = self.client_socket.recv(1024)
             if not chunk:
                 break
-            response += chunk
+            response_data += chunk
             response_size -= len(chunk)
-        response_data = json.loads(response.decode())
-        return response_data
-    
+        
+        return json.loads(response_data.decode())

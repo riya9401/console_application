@@ -13,6 +13,7 @@ class EmployeeController:
             'save_profile': self.employee_service.saveProfile,
             'get_profile': self.employee_service.getProfile,
             'get_notifications': self.employee_service.getNotifications,
+            'get_feedback_required_list': self.employee_service.get_feedback_required_list,
             'provideFeedback_discardItem': self.employee_service.provideFeedback_discardItem,
             'clear_notification': self.employee_service.clearNotification
         }

@@ -36,6 +36,7 @@ class ClientHandler:
             'save_profile': self.employee_controller.handle_request,
             'get_profile': self.employee_controller.handle_request,
             'get_notifications': self.employee_controller.handle_request,
+            'get_feedback_required_list':self.employee_controller.handle_request,
             'provideFeedback_discardItem':self.employee_controller.handle_request,
             'clear_notification': self.employee_controller.handle_request,
         }

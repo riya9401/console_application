@@ -54,7 +54,7 @@ class EmployeeService:
 
     def getRecommendation_accToPrefrence(self, food_item_data):
         try:
-            return self.employee_repository.get_recommendation_with_profile(food_item_data['emp_id'], food_item_data['menu_type'])
+            return self.employee_repository.get_recommendation_with_profile(food_item_data['emp_id'], food_item_data['menu_type'], food_item_data['max_limit'])
         except Exception as e:
             return self._error_response(f"Error getting recommendation according to preference: {e}")
     
@@ -63,6 +63,12 @@ class EmployeeService:
             return self.employee_repository.get_notifications(emp_id)
         except Exception as e:
             return self._error_response(f"Error getting notifications: {e}")
+        
+    def get_feedback_required_list(self,user):
+        try:
+            return self.employee_repository.get_feedback_required_list(user)
+        except Exception as e:
+            return self._error_response(f"Error getting discard items list that required feedbacks: {e}")
     
     def provideFeedback_discardItem(self, emp_id):
         try:

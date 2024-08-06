@@ -18,9 +18,9 @@ class ChefRepository:
         return {'status': 'success', 'message': message, 'recommendation': rcmd_menu}
 
     def rollOutMenu(self, request_data):
-        query = "select distinct menu_date from {}".format(self.daily_menu)
-        result = self.db.execute_query(query)
-        if str(result[0][0])!=str(datetime.now().strftime("%Y-%m-%d")):
+        query = "select count(distinct menu_date) from {}".format(self.daily_menu)
+        result = self.db.execute_query(query)[0][0]
+        if (result>1) and (str(result[0][0])!=str(datetime.now().strftime("%Y-%m-%d"))):
             self.clearRecords(self.daily_menu)
         for item in request_data['item']:
             query = "insert into {} (item_id, menu_category, menu_date) values (%s,%s,%s)".format(self.daily_menu)

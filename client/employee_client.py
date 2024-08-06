@@ -14,7 +14,8 @@ class EmployeeClient:
             4: "View Menu",
             5: "Update Profile",
             6: "View Notifications",
-            7: "Log Out"
+            7: "Provide Feedback for Discard Item",
+            8: "Log Out"
         }
         self.menu_category = {
             1: "Breakfast",
@@ -22,6 +23,7 @@ class EmployeeClient:
             3: "Dinner"
         }
         self.details = employee_details
+        self.discard_item  = {}
 
     def handle_employee_actions(self):
         while True:
@@ -43,6 +45,8 @@ class EmployeeClient:
                 elif choice == '6':
                     self.display_notifications()
                 elif choice == '7':
+                    self.provide_discard_item_feedback()
+                elif choice == '8':    
                     return 'logOut'
                 else:
                     print(f"\nInvalid choice, try again...")
@@ -143,7 +147,8 @@ class EmployeeClient:
             for category in self.menu_category:
                 print(f"{category}. {self.menu_category[category]}")
             menu_type = int(input("\nPlease enter your menu category here: "))
-            self.send_request('get_recommendation_employee', {'menu_type': self.menu_category[menu_type], 'emp_id': self.details['user_id']})
+            max_item = int(input("Enter number of items in recommendate menu: "))
+            self.send_request('get_recommendation_employee', {'menu_type': self.menu_category[menu_type], 'emp_id': self.details['user_id'], "max_limit": max_item})
         except Exception as e:
             print(f"\nFailed to view recommendations: {str(e)}")
 
@@ -194,22 +199,33 @@ class EmployeeClient:
             print("-"*50)
             for notification in notifications:
                 print(f"\n{notification[1]}:\n{notification[3]}")
-                if notification[1].lower() == 'feedback_required':
-                    if input("Would you like to provide feedback(yes/no): ").lower() in ["yes","y"]:
-                        feedback = self.get_feedback('feedback_required')
-                        feedback['data'] = {'emp_id': notification[2], 'item_name': notification[4]}
-                        self.provide_feedback_discard_item(feedback)
                 self.clear_notification(notification[0])
         else:
             print("\nNo new notification found.")
+            
+    def provide_discard_item_feedback(self):
+        request = {'action': "get_feedback_required_list", 'data': self.details['user_id']}
+        self.client_socket.sendall(json.dumps(request).encode())
+        response_data = self.get_response()
+        print(response_data['message'])
+        if response_data['status'] =="exception":
+            return
+        elif len(response_data['discard_items'])<1:
+            print("No item found for discard.")
+        else:
+            discardItem = response_data['discard_items']
+            if  input(f"\nwould you like to provide feedback for {discardItem} (yes/no):").lower() in ["yes","y"]:
+                feedback = self.get_feedback('feedback_required',discardItem)
+                feedback['data'] = {'emp_id': self.details["user_id"], 'item_name': discardItem}
+                self.provide_feedback_discard_item(feedback)
 
-    def get_feedback(self, feedback_type):
+    def get_feedback(self, feedback_type,item):
         feedback = {}
         if feedback_type == 'feedback_required':
             questions = {
-                1: "What didn’t you like?",
-                2: "How would you like this to taste?",
-                3: "Share your mom’s recipe."
+                1: f"What didn’t you like in {item}?",
+                2: f"How would you like {item} to be taste?",
+                3: f"Share your mom’s recipe for {item}."
             }
             for ques_num in questions:
                 feedback[f'{ques_num}'] = input(f"{questions[ques_num]}\n")

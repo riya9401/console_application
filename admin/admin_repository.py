@@ -8,6 +8,7 @@ class AdminRepository:
         self.notification = 'user_notification'
         self.itemDescription = 'item_description'
         self.scoring = 'item_score'
+        self.discard_items_feedback = 'discard_item_employee_feedback'
         
     def add(self, food_item_data):
         try:
@@ -101,13 +102,8 @@ class AdminRepository:
             SELECT item.name, CAST(item_sc.average_rating AS CHAR) as avg_rating, CAST(item_sc.average_sentiment AS CHAR) as avg_sentiment_score
             FROM {self.table_name} item
             JOIN {self.scoring} item_sc ON item.item_id = item_sc.item_id
-            JOIN {self.feedback} fb ON item.item_id = fb.item_id
             WHERE item_sc.average_rating < 2 
-                OR LOWER(fb.comment) LIKE '%tasteless%' 
-                OR LOWER(fb.comment) LIKE '%extremely bad experience%' 
-                OR LOWER(fb.comment) LIKE '%very poor%' 
-                OR LOWER(fb.comment) LIKE '%worst%'
-            ORDER BY avg_rating DESC, avg_sentiment_score ASC;
+            ORDER BY avg_rating DESC, avg_sentiment_score DESC;
         """
 
             discard_items = self.db.execute_query(query)
@@ -129,8 +125,13 @@ class AdminRepository:
             message = f"We are trying to improve your experience with {item_name}. Please provide your feedback and help us.\n"
             employees = self._get_all_employee_ids()
             for employee_id in employees:
+                # insert data into user notifications table
                 query = f"INSERT INTO {self.notification} (notify_type, user_id, notification, item_name) VALUES ('feedback_required', %s, %s, %s)"
                 self.db.execute_query(query, params=(employee_id, message, item_name))
+                
+                # insert item_name with employee_id in discard_item_feedback table
+                query = f"INSERT INTO {self.discard_items_feedback} (item_name, emp_id) VALUES (%s,%s)"
+                self.db.execute_query(query, params=(item_name, employee_id))
             return {'status': 'success'}
         except Exception as e:
             return {'status': 'failure', 'message': str(e)}
