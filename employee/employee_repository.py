@@ -13,6 +13,10 @@ class EmployeeRepository:
         self.item_description = 'item_description'
         self.notification = 'user_notification'
         self.discard_items_feedback = 'discard_item_employee_feedback'
+        self.food_type_pref = ''
+        self.spice_level_pref = ''
+        self.preference_type_pref = ''
+        self.sweet_tooth_pref = ''
 
     def save_profile(self, profile_data):
         try:
@@ -93,8 +97,7 @@ class EmployeeRepository:
                 LEFT JOIN {} score ON item.item_id = score.item_id 
                 LEFT JOIN {} item_d ON item.item_id = item_d.item_id 
                 WHERE LOWER(item.availability) IN (%s, 'all')
-                ORDER BY score.average_rating DESC, score.average_sentiment DESC 
-                LIMIT 100  -- Fetch more items initially to allow for proper filtering
+                ORDER BY score.average_rating DESC, score.average_sentiment DESC
             """.format(self.cafeteria_menu, self.scoring, self.item_description)
             
             # Execute the query
@@ -102,7 +105,7 @@ class EmployeeRepository:
             
             # Filter and rank recommendations based on the employee's profile
             if profile:
-                recommendations = self._filter_and_rank_recommendations(recommendations, profile)
+                recommendations = self._rank_recommendations(recommendations, profile)
 
             # Apply the max limit after filtering and ranking
             recommendations = recommendations[:max_limit]
@@ -115,42 +118,42 @@ class EmployeeRepository:
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
 
-    def _filter_and_rank_recommendations(self, recommendations, profile):
+    def _rank_recommendations(self, recommendations, profile):
         # Unpack the profile for easier reference
-        food_type_pref = profile[0][2].lower()
-        spice_level_pref = profile[0][3].lower()
-        preference_type_pref = profile[0][4].lower()
-        sweet_tooth_pref = profile[0][5].lower()
-
-        # Filter out items that don't match the food type
-        filtered_recommendations = [
-            item for item in recommendations if item[2].lower() == food_type_pref
-        ]
-
-        # Rank recommendations based on preferences
-        def rank_recommendation(item):
-            score = 0
-
-            # Preference for specific cuisine (e.g., South Indian)
-            if item[4].lower() == preference_type_pref:
-                score += 3
-            
-            # Within the cuisine, rank by spice level
-            if item[3].lower() == spice_level_pref:
-                score += 2
-
-            # General ranking by rating and sentiment
-            rating_score = float(item[5]) if item[5] is not None else 0
-            sentiment_score = float(item[6]) if item[6] is not None else 0
-            score += rating_score + sentiment_score
-
-            return score
-
+        self.set_sortingParameter(profile)
+        
         # Rank and sort the filtered items
-        ranked_recommendations = sorted(filtered_recommendations, key=rank_recommendation, reverse=True)
+        ranked_recommendations = sorted(recommendations, key=self.rank_recommendation, reverse=True)
 
         return ranked_recommendations
 
+    def set_sortingParameter(self,params):
+        self.food_type_pref = params[0][2].lower()
+        self.spice_level_pref = params[0][3].lower()
+        self.preference_type_pref = params[0][4].lower()
+        self.sweet_tooth_pref = params[0][5].lower()
+        
+    # Rank recommendations based on preferences
+    def rank_recommendation(self,item):
+        score = 0
+
+        if item[2].lower() == self.food_type_pref:
+            score += 10
+            
+        # Preference for specific cuisine (e.g., South Indian)
+        if item[4].lower() == self.preference_type_pref:
+            score += 3
+        
+        # Within the cuisine, rank by spice level
+        if item[3].lower() == self.spice_level_pref:
+            score += 2
+
+        # General ranking by rating and sentiment
+        rating_score = float(item[5]) if item[5] is not None else 0
+        sentiment_score = float(item[6]) if item[6] is not None else 0
+        score += (rating_score + sentiment_score)
+
+        return score
 
     def view_all_items(self):
         try:
@@ -203,7 +206,7 @@ class EmployeeRepository:
         try:
             query = "DELETE FROM {} WHERE notify_id = %s and notify_type != 'feedback_required'".format(self.notification)
             self.db.execute_query(query, params=(notification_id,))
-            message = f"Cleared all notifications."
+            message = f""
             return {'status': 'success', 'message': message}
         except Exception as e:
             return {'status': 'failure', 'message': str(e)}
@@ -212,7 +215,6 @@ class EmployeeRepository:
         try:
             query = "DELETE FROM {} WHERE notify_id = %s and notify_type = 'feedback_required'".format(self.notification)
             self.db.execute_query(query, params=(notification_id,))
-            # message = f"notifications."
             return {'status': 'success', 'message': '\n'}
         except Exception as e:
             return {'status': 'failure', 'message': str(e)}

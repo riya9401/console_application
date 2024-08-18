@@ -8,8 +8,7 @@ class ChefClient:
         self.action = {
             1: "View Menu Recommendation",
             2 : "Roll Out Menu",
-            3 : "View Monthly Feedback Reports",
-            4 : "Log Out"}
+            3 : "Log Out"}
         self.menu_category = {
             1 : "Breakfast",
             2 : "Lunch",
